@@ -1,0 +1,128 @@
+@import "tailwindcss";
+
+/* === Tema personalizado del sistema POS === */
+@theme {
+  /* Color de énfasis principal - azul acero sobrio */
+  --color-accent: #4a6fa5;
+  --color-accent-hover: #3b5d8c;
+  --color-accent-light: #e8eef5;
+
+  /* Fondos */
+  --color-bg-main: #f0f0f0;
+  --color-bg-panel: #ffffff;
+  --color-bg-sidebar: #1e1e1e;
+  --color-bg-sidebar-hover: #2a2a2a;
+  --color-bg-sidebar-active: #333333;
+
+  /* Textos */
+  --color-text-primary: #1a1a1a;
+  --color-text-secondary: #6b6b6b;
+  --color-text-sidebar: #cccccc;
+  --color-text-sidebar-active: #ffffff;
+
+  /* Bordes */
+  --color-border: #d4d4d4;
+  --color-border-light: #e5e5e5;
+
+  /* Estados */
+  --color-success: #4a8c5c;
+  --color-danger: #a54a4a;
+  --color-warning: #a58c4a;
+}
+
+/* === Estilos globales === */
+
+/* Todo sin bordes redondeados */
+* {
+  border-radius: 0 !important;
+}
+
+/* Reset y base */
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  background-color: var(--color-bg-main);
+  color: var(--color-text-primary);
+}
+
+/* Desactivar animaciones globalmente */
+*, *::before, *::after {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* Scrollbar minimalista */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-bg-main);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+}
+
+/* === Estilos para el Manual (Markdown) === */
+.manual-markdown h1 {
+  font-size: 1.5rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-text-primary);
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  border-bottom: 2px solid var(--color-border);
+  padding-bottom: 0.5rem;
+}
+
+.manual-markdown h2 {
+  font-size: 1.1rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--color-text-primary);
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.manual-markdown h3 {
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--color-text-primary);
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.manual-markdown p {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+  margin-bottom: 1.25rem;
+}
+
+.manual-markdown ul {
+  margin-bottom: 1.25rem;
+  padding-left: 1.25rem;
+}
+
+.manual-markdown li {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  margin-bottom: 0.5rem;
+  list-style-type: square;
+}
+
+.manual-markdown strong {
+  color: var(--color-text-primary);
+  font-weight: 700;
+}
+
+.manual-markdown hr {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: 2rem 0;
+}
