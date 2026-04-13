@@ -1,25 +1,29 @@
-# Introducción al Sistema POS
+# Introducción a NexPOS
  
-Bienvenido a su nueva herramienta de gestión comercial. Este sistema ha sido diseñado para ser el motor central de su negocio, ofreciendo una experiencia de uso rápida, segura y extremadamente sencilla.
+Bienvenido a NexPOS, su nueva herramienta de gestión comercial. Este sistema ha sido diseñado desde cero para ser el motor central de su negocio, ofreciendo una experiencia de uso extremadamente ágil, segura y libre de complicaciones técnicas.
  
-## ¿Por qué usar este sistema?
+## ¿Por qué elegir NexPOS?
  
-A diferencia de otros programas, este sistema funciona de manera autónoma en su equipo. Esto le garantiza:
-- **Velocidad Total**: Las operaciones son instantáneas. No hay tiempos de espera para cargar productos o finalizar tickets.
-- **Funcionamiento Sin Internet**: Usted puede seguir vendiendo y consultando su inventario aunque se corte la conexión, asegurando que su negocio nunca se detenga.
-- **Seguridad de Datos**: Toda su información financiera se guarda localmente, garantizando que sus ventas y reportes estén siempre protegidos y bajo su control.
+A diferencia de los engorrosos sistemas tradicionales en la nube, NexPOS es una aplicación "Offline-First" que funciona de manera autónoma en su equipo local. Esto le garantiza ventajas vitales:
  
-## Tipos de Productos que puede Manejar
+- **Máxima Velocidad Operativa**: Las operaciones en la caja son instantáneas. No hay tiempos de espera ni pantallas de carga que demoren la atención al cliente, incluso en horas pico.
+- **Funcionamiento 100% Sin Internet**: Su negocio nunca se detiene. Usted puede seguir cobrando, gestionando stock y consultando reportes aunque se caiga la conexión a internet.
+- **Privacidad y Control Total**: Toda su información financiera (ventas, cajas y base de clientes) se almacena encriptada y localmente en su propia PC, garantizando total privacidad.
  
-El sistema se adapta a la forma en que usted vende su mercadería:
+## Flujo de Trabajo Recomendado
  
-1. **Productos por Unidad**: Ideal para artículos cerrados como botellas, paquetes o latas donde se venden piezas enteras.
-2. **Productos por Peso (Granel)**: Optimizado para artículos de balanza como carnes o verduras. El sistema permite ingresar el peso en gramos para calcular el precio automáticamente.
+Para aprovechar al máximo NexPOS, le recomendamos el siguiente circuito diario:
+- 1. Asegúrese de tener el inventario base cargado en **Inventario**.
+- 2. Al iniciar su jornada, vaya a **Cierre de Caja** y realice la "Apertura", indicando el cambio (fondo) con el que inicia.
+- 3. Utilice la **Caja** durante todo el día para atender clientes.
+- 4. En cualquier momento puede consultar sus estadísticas en tiempo real desde **Informes**. 
+- 5. Al finalizar su día, vuelva a **Cierre de Caja** para hacer su arqueo final y conocer el resultado de su turno.
  
-## Guía de Navegación
+## Estructura del Sistema
  
-La pantalla principal se organiza de la siguiente manera:
-- **Barra Lateral**: Es su panel de control. Desde aquí puede saltar entre la Caja de ventas, su Inventario de productos, ver el Historial de tickets o analizar los Reportes de ganancia.
-- **Panel Central**: Es su área de trabajo activa donde cargará las ventas o editará sus existencias.
- 
-Para obtener la mayor velocidad posible, le recomendamos consultar la sección de "Atajos de Teclado" en el manual de Caja. Una operación fluida en mostrador es clave para una buena atención al cliente.
+El sistema se organiza mediante una barra de navegación lateral desde la cual accede a las herramientas principales:
+- **Caja**: Su módulo de facturación rápida a clientes.
+- **Inventario**: Su base de datos de mercadería, precios y stock.
+- **Historial**: Un registro completo de todos los tickets generados.
+- **Informes**: Sus tableros gráficos de métricas y ventas por hora o mes.
+- **Cierre y Auditoría**: El centro de seguridad de manejo de efectivo.

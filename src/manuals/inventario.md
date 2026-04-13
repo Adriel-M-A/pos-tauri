@@ -1,30 +1,24 @@
 # Manual del Módulo de Inventario
  
-El inventario permite el control total de los activos del negocio. Es fundamental mantener esta base de datos actualizada para asegurar que la caja opere sin fricciones.
+El módulo de inventario le permite controlar el cerebro de los precios y productos de su base de datos.
+Al igual que los otros apartados del sistema, en lugar de navegar páginas por página el sistema presenta una búsqueda ultrarrápida instantánea apoyable por la tecla rápida F1.
  
-## Clasificación de Productos
+## Alta Rápida de Stock (Atajo F2)
  
-Al crear un producto, debe definir su naturaleza para que el sistema sepa cómo realizar los cálculos en el mostrador:
+Desde cualquier rincón de la plantilla de productos presione la tecla F2 para emerger la ficha visual del nuevo artículo que va a incorporar. Preste extrema atención a las siguientes variables obligatorias:
  
-- **Productos Unitarios**: Ideales para mercadería que se vende por envase, lata o paquete. No permiten ingreso de decimales por parte del cajero para evitar errores humanos.
-- **Productos Pesables o a Granel**: Seleccione esta opción para artículos que se venden por kilogramo (frutas, legumbres, carnes). Habilita el campo de pesaje rápido en gramos en la caja.
+- **Stock Base y Precio**: Ingresará en número absolutos. Si el artículo es contable el costo es por 1 unidad física. Si es a Granel o de peso, se ingresa el valor de acuerdo a la medida final de todo un kilo completo.
+- **Tipo de Naturaleza**: Define la columna vertebral de cómo este producto se comportará si se cobra (Si será contable con saltos por unidad o permitirá pesar a granel los gramos que la balanza le exprese). 
+- **Controla Ventas**: Esto bloquea al usuario si vende de más. Para servicios inmateriales o productos libres ponga que *No controla Stock*. 
  
-## Configuración de Atributos
+## La Grilla en Tiempo Real (Edición Directa)
  
-Cada producto cuenta con identificadores únicos y configuraciones de comportamiento:
-- **Código y Nombre**: Elementos clave para la búsqueda rápida en caja. Se recomienda usar códigos cortos o códigos de barras si dispone de un lector.
-- **Precio por Unidad/Kilo**: El sistema utiliza este valor base para todos los cálculos automáticos de subtotal. El precio se ingresa siempre por la unidad total (un producto o un kilo).
-- **Control de Stock**: Puede activarse de forma individual. Si un producto no controla stock (ej: bolsas de nylon o recargos de servicio), el sistema no restringirá la venta por unidades disponibles.
+Modificar costos hoy en día en tiempo récord es clave para soportar presiones económicas. 
+NexPOS integra una Grilla inteligente. Al igual que con un papel de cálculo moderno como Excel, no requiere usted de entrar a lentos botones técnicos de edición. 
+Simplemente al pasar el ratón, con **dar clic en cualquier número de precio o valor de la tabla** activará el comando y se volverá una casilla blanca editable de alta interactividad en vivo. Escriba y presione `Enter` y verá una advertencia mágica avisándole cómo el nuevo valor ya ha sido anclado al motor interno offline instantáneamente y la próxima venta aplicará esta tarifa novedosa.
  
-## Edición en Grilla (Actualización Rápida)
+## Gestión del Historial Financiero (Borrado Lógico)
  
-Para cambios masivos de precios o actualizaciones de mercadería entrante, el inventario permite la edición directa sobre la tabla:
-- Al hacer clic sobre el precio o el stock de un producto, el campo se volverá editable.
-- Presione la tecla Enter para confirmar o simplemente haga clic fuera del recuadro para autoguardar.
-- Para cambios de nombre o código que requieran mayor detalle, use el botón de edición para abrir el formulario completo.
- 
-## Estados de Productos e Inactivos
- 
-Para mantener la integridad histórica de los reportes de ventas, los productos no se eliminan físicamente. El borrado lógico asegura que si un producto se vendió en el pasado, su nombre siga apareciendo en los tickets viejos aunque deje de venderse hoy.
-- **Desactivación**: Al presionar borrar, el producto pasa al estado "Inactivo".
-- **Reactivación**: Puede volver a dar de alta un producto inactivo en cualquier momento activando el filtro de "Mostrar inactivos".
+Para evitar corrupciones financieras como los sistemas anticuados que pierden detalles o tickets rotos al eliminar algo pasados años:
+- NexPOS emplea **Estado de Inactividad**. Al darle click al tacho rojo y presionar Eliminar, este ya no podrá seleccionarse ni aparecer en la Caja. Pero al mismo tiempo preserva históricamente cómo y bajo qué números operó ayer asegurando tranquilidad y una integridad fuerte del total histórico.
+- **Ver Inactivos:** Marcando la casilla de la barra lateral devolverá todos los números inactivos o caducados permitiendo el botón para que se *Resuciten* a vivos.

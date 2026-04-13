@@ -5,13 +5,17 @@ import ReactMarkdown from "react-markdown";
 import manualIntroduccion from "../manuals/introduccion.md?raw";
 import manualCaja from "../manuals/caja.md?raw";
 import manualInventario from "../manuals/inventario.md?raw";
+import manualHistorial from "../manuals/historial.md?raw";
+import manualInformes from "../manuals/informes.md?raw";
 import manualCierres from "../manuals/cierres.md?raw";
 
 const TABS = [
   { id: "introduccion", nombre: "Introducción", contenido: manualIntroduccion },
-  { id: "caja", nombre: "Módulo de Caja", contenido: manualCaja },
+  { id: "caja", nombre: "Caja", contenido: manualCaja },
   { id: "inventario", nombre: "Inventario", contenido: manualInventario },
-  { id: "cierres", nombre: "Turnos y Cierres", contenido: manualCierres },
+  { id: "historial", nombre: "Historial", contenido: manualHistorial },
+  { id: "informes", nombre: "Informes", contenido: manualInformes },
+  { id: "cierres", nombre: "Cierres", contenido: manualCierres },
 ];
 
 function Ayuda() {
@@ -30,7 +34,7 @@ function Ayuda() {
         <h1 className="text-lg font-black text-text-primary tracking-widest uppercase">
           Manual de Usuario
         </h1>
-        
+
         {/* Selector de Tabs (Estilo Reports) */}
         <div className="flex bg-bg-main p-1 border border-border">
           {TABS.map((tab) => (
@@ -39,8 +43,8 @@ function Ayuda() {
               onClick={() => setTabActiva(tab.id)}
               className={`
                 px-4 py-1.5 text-[10px] font-bold uppercase tracking-tighter cursor-pointer transition-colors
-                ${tabActiva === tab.id 
-                  ? "bg-text-primary text-white" 
+                ${tabActiva === tab.id
+                  ? "bg-text-primary text-white"
                   : "bg-transparent text-text-secondary hover:bg-border/30"}
               `}
             >
@@ -51,7 +55,7 @@ function Ayuda() {
       </div>
 
       {/* Área del Lector de Markdown */}
-      <div className="flex-1 overflow-auto p-8 max-w-4xl mx-auto w-full">
+      <div className="flex-1 overflow-auto p-8 max-w-6xl mx-auto w-full">
         <div className="manual-markdown">
           <ReactMarkdown>{contenido}</ReactMarkdown>
         </div>
