@@ -91,3 +91,85 @@ pub async fn get_historial_cierres(pool: State<'_, SqlitePool>, mes: String) -> 
     repo_get_cierres_por_mes(&*pool, mes).await.map_err(|e| { eprintln!("Error: {}", e); e.to_string() })
 }
 
+// --- BACKUP COMANDOS ---
+
+#[tauri::command]
+pub async fn crear_backup(app_handle: tauri::AppHandle, ruta_destino: String) -> Result<String, String> {
+    use std::fs;
+    use tauri::Manager;
+
+    // Obtener la ruta de la base de datos actual
+    let app_dir = app_handle.path().app_data_dir().map_err(|e| e.to_string())?;
+    let db_path = app_dir.join("pos.db");
+
+    if !db_path.exists() {
+        return Err("No se encontró la base de datos para respaldar.".to_string());
+    }
+
+    // Generar nombre con timestamp
+    let ahora = chrono::Local::now().format("%Y-%m-%d_%H-%M-%S").to_string();
+    let nombre_archivo = format!("NexPOS_Backup_{}.db", ahora);
+    let destino_completo = std::path::Path::new(&ruta_destino).join(&nombre_archivo);
+
+    // Copiar el archivo de la base de datos
+    fs::copy(&db_path, &destino_completo).map_err(|e| format!("Error al copiar: {}", e))?;
+
+    // Guardar fecha del último backup en un archivo JSON
+    let info_path = app_dir.join("backup_info.json");
+    let info = serde_json::json!({
+        "ultimo_backup": chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string(),
+        "ruta": destino_completo.to_string_lossy()
+    });
+    fs::write(&info_path, serde_json::to_string_pretty(&info).unwrap())
+        .map_err(|e| format!("Error al guardar info de backup: {}", e))?;
+
+    Ok(destino_completo.to_string_lossy().to_string())
+}
+
+#[tauri::command]
+pub async fn restaurar_backup(app_handle: tauri::AppHandle, pool: tauri::State<'_, sqlx::SqlitePool>, ruta_origen: String) -> Result<(), String> {
+    use std::fs;
+    use tauri::Manager;
+
+    let origen = std::path::Path::new(&ruta_origen);
+    if !origen.exists() {
+        return Err("El archivo de respaldo seleccionado no existe.".to_string());
+    }
+
+    // 1. Cerrar violentamente el pool de conexiones actual para liberar el archivo (pos.db)
+    pool.close().await;
+
+    // Obtener la ruta de la base de datos actual
+    let app_dir = app_handle.path().app_data_dir().map_err(|e| e.to_string())?;
+    let db_path = app_dir.join("pos.db");
+
+    // 2. Limpiar permanentemente los archivos WAL/SHM para evitar corrupción
+    let _ = fs::remove_file(app_dir.join("pos.db-wal"));
+    let _ = fs::remove_file(app_dir.join("pos.db-shm"));
+
+    // 3. Sobreescribir la base de datos vacía/cerrada con el respaldo
+    fs::copy(origen, &db_path).map_err(|e| format!("Error al restaurar: {}", e))?;
+
+    // 4. Reiniciar la aplicación automáticamente para cargar la nueva base de datos
+    app_handle.restart();
+
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn get_backup_info(app_handle: tauri::AppHandle) -> Result<Option<serde_json::Value>, String> {
+    use std::fs;
+    use tauri::Manager;
+
+    let app_dir = app_handle.path().app_data_dir().map_err(|e| e.to_string())?;
+    let info_path = app_dir.join("backup_info.json");
+
+    if !info_path.exists() {
+        return Ok(None);
+    }
+
+    let contenido = fs::read_to_string(&info_path).map_err(|e| e.to_string())?;
+    let json: serde_json::Value = serde_json::from_str(&contenido).map_err(|e| e.to_string())?;
+    Ok(Some(json))
+}
+

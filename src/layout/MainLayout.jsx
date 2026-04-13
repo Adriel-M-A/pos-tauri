@@ -6,6 +6,7 @@ import Historial from "../views/Historial";
 import Informes from "../views/Informes";
 import Cierre from "../views/Cierre";
 import AuditoriaCierres from "../views/AuditoriaCierres";
+import Respaldos from "../views/Respaldos";
 import Ayuda from "../views/Ayuda";
 
 // Mapa de vistas disponibles
@@ -16,6 +17,7 @@ const vistas = {
   informes: Informes,
   cierre: Cierre,
   auditoria: AuditoriaCierres,
+  respaldos: Respaldos,
   ayuda: Ayuda,
 };
 

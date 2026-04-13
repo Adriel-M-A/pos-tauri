@@ -117,9 +117,9 @@ function Informes() {
         
         {/* FILA 1: KPIs (3 cards x 2 cols c/u) */}
         {/* Total Facturado */}
-        <div className="col-span-2 bg-white p-6 border border-border shadow-sm flex items-center justify-between">
+        <div className="col-span-2 bg-white p-4 border border-border shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-xs font-bold text-text-secondary uppercase mb-2">Total Facturado</p>
+            <p className="text-xs font-bold text-text-secondary uppercase mb-1">Total Facturado</p>
             <p className="text-3xl font-black text-text-primary uppercase">${(datos.total_facturado / 100).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
           </div>
           <div className="w-12 h-12 bg-success/10 text-success rounded-full flex items-center justify-center shrink-0">
@@ -128,9 +128,9 @@ function Informes() {
         </div>
         
         {/* Cantidad Ventas */}
-        <div className="col-span-2 bg-white p-6 border border-border shadow-sm flex items-center justify-between">
+        <div className="col-span-2 bg-white p-4 border border-border shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-xs font-bold text-text-secondary uppercase mb-2">Cantidad Ventas</p>
+            <p className="text-xs font-bold text-text-secondary uppercase mb-1">Cantidad Ventas</p>
             <p className="text-3xl font-black text-text-primary">{datos.cantidad_ventas} Tickets</p>
           </div>
           <div className="w-12 h-12 bg-accent/10 text-accent rounded-full flex items-center justify-center shrink-0">
@@ -139,9 +139,9 @@ function Informes() {
         </div>
 
         {/* Promedio x Venta */}
-        <div className="col-span-2 bg-white p-6 border border-border shadow-sm flex items-center justify-between">
+        <div className="col-span-2 bg-white p-4 border border-border shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-xs font-bold text-text-secondary uppercase mb-2">Ticket Promedio</p>
+            <p className="text-xs font-bold text-text-secondary uppercase mb-1">Ticket Promedio</p>
             <p className="text-3xl font-black text-text-primary uppercase">${Math.round(datos.promedio_ticket / 100).toLocaleString("es-AR")}</p>
           </div>
           <div className="w-12 h-12 bg-text-primary/10 text-text-primary rounded-full flex items-center justify-center shrink-0">

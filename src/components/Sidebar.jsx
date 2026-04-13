@@ -5,6 +5,7 @@ import {
   ChartNoAxesCombined,
   Banknote,
   ShieldCheck,
+  HardDriveDownload,
   Info
 } from "lucide-react";
 import pkg from "../../package.json";
@@ -25,6 +26,7 @@ const opcionesMenu = [
   { id: "informes", nombre: "Informes", icono: ChartNoAxesCombined },
   { id: "cierre", nombre: "Cierre", icono: Banknote },
   { id: "auditoria", nombre: "Auditoría", icono: ShieldCheck },
+  { id: "respaldos", nombre: "Respaldos", icono: HardDriveDownload },
 ];
 
 function Sidebar({ vistaActiva, onCambiarVista }) {

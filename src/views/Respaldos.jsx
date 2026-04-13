@@ -1,0 +1,240 @@
+import { useState, useEffect } from "react";
+import { HardDriveDownload, HardDriveUpload, AlertTriangle, CheckCircle, Clock } from "lucide-react";
+import { invoke } from "@tauri-apps/api/core";
+import { open } from "@tauri-apps/plugin-dialog";
+import { toast } from "sonner";
+import ConfirmModal from "../components/ui/ConfirmModal";
+
+function Respaldos() {
+  const [backupInfo, setBackupInfo] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [modalRestaurar, setModalRestaurar] = useState(false);
+  const [archivoRestaurar, setArchivoRestaurar] = useState(null);
+
+  // Cargar info del último backup al montar
+  useEffect(() => {
+    cargarInfo();
+  }, []);
+
+  const cargarInfo = async () => {
+    setIsLoading(true);
+    try {
+      const info = await invoke("get_backup_info");
+      setBackupInfo(info);
+    } catch (err) {
+      console.error("Error al cargar info de backup:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Calcular días desde el último backup
+  const diasDesdeUltimoBackup = () => {
+    if (!backupInfo || !backupInfo.ultimo_backup) return null;
+    const ultima = new Date(backupInfo.ultimo_backup);
+    const ahora = new Date();
+    const diff = Math.floor((ahora - ultima) / (1000 * 60 * 60 * 24));
+    return diff;
+  };
+
+  const dias = diasDesdeUltimoBackup();
+  const necesitaBackup = dias === null || dias >= 30;
+
+  // --- CREAR BACKUP ---
+  const handleCrearBackup = async () => {
+    try {
+      // Abrir diálogo nativo para elegir carpeta destino
+      const carpeta = await open({
+        directory: true,
+        multiple: false,
+        title: "Seleccione carpeta para guardar el respaldo",
+      });
+
+      if (!carpeta) return; // El usuario canceló
+
+      setIsProcessing(true);
+      const rutaFinal = await invoke("crear_backup", { rutaDestino: carpeta });
+
+      toast.success("Respaldo creado exitosamente", {
+        description: `Guardado en: ${rutaFinal}`,
+        duration: 5000,
+      });
+
+      // Refrescar la info
+      await cargarInfo();
+    } catch (err) {
+      console.error("Error al crear backup:", err);
+      toast.error("Error al crear respaldo", {
+        description: String(err),
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // --- RESTAURAR BACKUP ---
+  const handleSeleccionarRestauracion = async () => {
+    try {
+      const archivo = await open({
+        directory: false,
+        multiple: false,
+        title: "Seleccione el archivo de respaldo (.db)",
+        filters: [{ name: "Base de Datos", extensions: ["db"] }],
+      });
+
+      if (!archivo) return; // El usuario canceló
+
+      setArchivoRestaurar(archivo);
+      setModalRestaurar(true);
+    } catch (err) {
+      console.error("Error al seleccionar archivo:", err);
+    }
+  };
+
+  const confirmarRestauracion = async () => {
+    if (!archivoRestaurar) return;
+    setModalRestaurar(false);
+    setIsProcessing(true);
+
+    try {
+      await invoke("restaurar_backup", { rutaOrigen: archivoRestaurar });
+      toast.success("Respaldo restaurado exitosamente", {
+        description: "Reinicie la aplicación para aplicar los cambios correctamente.",
+        duration: 8000,
+      });
+    } catch (err) {
+      console.error("Error al restaurar:", err);
+      toast.error("Error al restaurar respaldo", {
+        description: String(err),
+      });
+    } finally {
+      setIsProcessing(false);
+      setArchivoRestaurar(null);
+    }
+  };
+
+  return (
+    <div className="flex flex-col h-full bg-bg-main">
+
+      {/* Cabecera */}
+      <div className="h-16 px-6 bg-bg-panel border-b border-border flex items-center">
+        <h1 className="text-lg font-black text-text-primary tracking-widest uppercase">
+          Copias de Seguridad
+        </h1>
+      </div>
+
+      {/* Contenido principal */}
+      <div className="flex-1 overflow-auto p-8 max-w-3xl mx-auto w-full">
+
+        {/* Alerta de estado */}
+        {!isLoading && (
+          <div className={`p-4 border mb-8 flex items-center gap-4 ${necesitaBackup
+              ? "bg-danger/5 border-danger/30"
+              : "bg-success/5 border-success/30"
+            }`}>
+            {necesitaBackup ? (
+              <AlertTriangle size={24} className="text-danger shrink-0" />
+            ) : (
+              <CheckCircle size={24} className="text-success shrink-0" />
+            )}
+            <div>
+              <p className="text-sm font-bold text-text-primary">
+                {dias === null
+                  ? "Nunca se realizó un respaldo de la base de datos."
+                  : dias === 0
+                    ? "La última copia de seguridad fue realizada hoy."
+                    : `La última copia de seguridad fue realizada hace ${dias} día${dias > 1 ? "s" : ""}.`
+                }
+              </p>
+              {necesitaBackup && (
+                <p className="text-xs text-text-secondary mt-1">
+                  Se recomienda realizar un respaldo cada 30 días como mínimo para proteger su información.
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Info del último backup */}
+        {backupInfo && (
+          <div className="p-4 bg-white border border-border mb-8">
+            <h3 className="text-xs font-bold text-text-secondary uppercase mb-3 pb-2 border-b border-border">
+              Último Respaldo Registrado
+            </h3>
+            <div className="flex items-center gap-3 mb-2">
+              <Clock size={14} className="text-text-secondary" />
+              <span className="text-sm text-text-primary font-medium">{backupInfo.ultimo_backup}</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <HardDriveDownload size={14} className="text-text-secondary" />
+              <span className="text-xs text-text-secondary truncate">{backupInfo.ruta}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Acciones */}
+        <div className="grid grid-cols-2 gap-6">
+
+          {/* Crear Backup */}
+          <div className="bg-white border border-border p-6 flex flex-col items-center text-center">
+            <div className="w-16 h-16 bg-accent/10 text-accent flex items-center justify-center mb-4">
+              <HardDriveDownload size={32} />
+            </div>
+            <h3 className="text-sm font-black text-text-primary uppercase mb-2">Crear Respaldo</h3>
+            <p className="text-xs text-text-secondary mb-6 leading-relaxed">
+              Genera una copia exacta de toda su base de datos (ventas, productos, cierres) y la guarda en la carpeta que usted elija.
+            </p>
+            <button
+              onClick={handleCrearBackup}
+              disabled={isProcessing}
+              className={`w-full py-3 text-sm font-bold uppercase border-none cursor-pointer ${isProcessing
+                  ? "bg-border text-text-secondary cursor-not-allowed"
+                  : "bg-accent text-white hover:bg-accent/90"
+                }`}
+            >
+              {isProcessing ? "Procesando..." : "Elegir Carpeta y Respaldar"}
+            </button>
+          </div>
+
+          {/* Restaurar Backup */}
+          <div className="bg-white border border-border p-6 flex flex-col items-center text-center">
+            <div className="w-16 h-16 bg-danger/10 text-danger flex items-center justify-center mb-4">
+              <HardDriveUpload size={32} />
+            </div>
+            <h3 className="text-sm font-black text-text-primary uppercase mb-2">Restaurar Respaldo</h3>
+            <p className="text-xs text-text-secondary mb-6 leading-relaxed">
+              Sobreescribe la base de datos actual con una copia anterior. Esto reemplazará todos los datos actuales por los del archivo seleccionado.
+            </p>
+            <button
+              onClick={handleSeleccionarRestauracion}
+              disabled={isProcessing}
+              className={`w-full py-3 text-sm font-bold uppercase border-none cursor-pointer ${isProcessing
+                  ? "bg-border text-text-secondary cursor-not-allowed"
+                  : "bg-white text-danger border border-danger hover:bg-danger/5"
+                }`}
+            >
+              {isProcessing ? "Procesando..." : "Seleccionar Archivo .db"}
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      {/* Modal de confirmación para restaurar */}
+      {modalRestaurar && (
+        <ConfirmModal
+          isOpen={modalRestaurar}
+          titulo="Restaurar Respaldo"
+          mensaje="Esta acción REEMPLAZARÁ toda la base de datos actual (ventas, productos, cierres) con los datos del archivo seleccionado. Después de restaurar, deberá reiniciar la aplicación. ¿Está seguro?"
+          textoConfirmar="Sí, Restaurar"
+          textoCancelar="Cancelar"
+          onConfirm={confirmarRestauracion}
+          onCancel={() => { setModalRestaurar(false); setArchivoRestaurar(null); }}
+        />
+      )}
+    </div>
+  );
+}
+
+export default Respaldos;

@@ -8,6 +8,7 @@ import manualInventario from "../manuals/inventario.md?raw";
 import manualHistorial from "../manuals/historial.md?raw";
 import manualInformes from "../manuals/informes.md?raw";
 import manualCierres from "../manuals/cierres.md?raw";
+import manualRespaldos from "../manuals/respaldos.md?raw";
 
 const TABS = [
   { id: "introduccion", nombre: "Introducción", contenido: manualIntroduccion },
@@ -16,6 +17,7 @@ const TABS = [
   { id: "historial", nombre: "Historial", contenido: manualHistorial },
   { id: "informes", nombre: "Informes", contenido: manualInformes },
   { id: "cierres", nombre: "Cierres", contenido: manualCierres },
+  { id: "respaldos", nombre: "Respaldos", contenido: manualRespaldos },
 ];
 
 function Ayuda() {

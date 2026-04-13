@@ -9,6 +9,7 @@ use tauri::Manager;
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
             let handle = app.handle().clone();
             
@@ -35,7 +36,10 @@ pub fn run() {
             commands::registrar_movimiento,
             commands::get_movimientos_turno,
             commands::cerrar_turno,
-            commands::get_historial_cierres
+            commands::get_historial_cierres,
+            commands::crear_backup,
+            commands::restaurar_backup,
+            commands::get_backup_info
         ])
         .run(tauri::generate_context!())
         .expect("error al correr aplicacion tauri");
