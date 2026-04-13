@@ -50,11 +50,18 @@ pub struct GraficoItem {
     pub total: i64,
 }
 
-/// Producto en el ranking de salidas (Top 5)
+/// Producto en el ranking de salidas (Top 10)
 #[derive(Debug, Serialize, Deserialize, FromRow, Clone)]
 pub struct RankingItem {
     pub nombre: String,
     pub cantidad: f64, // Cantidad son unidades/kg, se mantiene en float
+}
+
+/// Desglose de ingresos por método de pago
+#[derive(Debug, Serialize, Deserialize, FromRow, Clone)]
+pub struct MetodoPagoItem {
+    pub metodo_pago: String,
+    pub total: i64,
 }
 
 /// Paquete completo que Rust devuelve a React de una sola vez
@@ -65,6 +72,7 @@ pub struct InformePayload {
     pub promedio_ticket: i64,
     pub grafico: Vec<GraficoItem>,
     pub ranking: Vec<RankingItem>,
+    pub metodos_pago: Vec<MetodoPagoItem>,
 }
 
 // =========== MODELOS TURNOS / CIERRE DE CAJA ===========

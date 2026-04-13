@@ -1,4 +1,4 @@
-use crate::models::{ItemVenta, Producto, Venta, InformePayload, GraficoItem, RankingItem, Turno, CajaMovimiento, CierrePayload};
+use crate::models::{ItemVenta, Producto, Venta, InformePayload, GraficoItem, RankingItem, MetodoPagoItem, Turno, CajaMovimiento, CierrePayload};
 use sqlx::SqlitePool;
 
 // =========== REPOSITORIO PRODUCTOS ===========
@@ -293,12 +293,26 @@ pub async fn repo_get_informe(
     .fetch_all(pool)
     .await?;
 
+    // Query 4: Desglose de ingresos por método de pago
+    let metodos_pago: Vec<MetodoPagoItem> = sqlx::query_as::<_, MetodoPagoItem>(
+        r#"SELECT metodo_pago, COALESCE(SUM(total), 0) as total
+           FROM ventas
+           WHERE fecha >= ? AND fecha <= ? AND anulada = 0
+           GROUP BY metodo_pago
+           ORDER BY total DESC"#
+    )
+    .bind(&desde)
+    .bind(&hasta)
+    .fetch_all(pool)
+    .await?;
+
     Ok(InformePayload {
         total_facturado,
         cantidad_ventas,
         promedio_ticket,
         grafico,
         ranking,
+        metodos_pago,
     })
 }
 

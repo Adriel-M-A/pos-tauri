@@ -15,6 +15,7 @@ function Informes() {
     promedio_ticket: 0,
     grafico: [],
     ranking: [],
+    metodos_pago: [],
   });
 
   // --- Conversor de período a rango de fechas (hora local pura) ---
@@ -193,31 +194,64 @@ function Informes() {
           </div>
         </div>
 
-        {/* ZONA DER: Ranking Top 10 Productos */}
-        <div className="col-span-2 bg-white border border-border shadow-sm p-4 flex flex-col min-h-[350px]">
-          <h3 className="text-sm font-bold text-text-secondary uppercase mb-4 pb-2 border-b border-border">Ranking de Ventas (Top 10)</h3>
-          
-          <div className="flex-1 flex flex-col gap-3">
-            {datos.ranking.length === 0 && !isLoading ? (
-               <div className="text-sm text-text-secondary h-full flex items-center justify-center font-bold">
-                 Información insuficiente
-               </div>
-            ) : (
-               datos.ranking.map((prod, i) => (
-                <div key={`${prod.nombre}-${i}`} className="flex items-center justify-between p-3 bg-bg-panel border border-border hover:border-accent transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 bg-accent rounded flex items-center justify-center text-white text-xs font-black">
-                      {i + 1}
+        {/* ZONA DER: Métodos de Pago + Ranking */}
+        <div className="col-span-2 flex flex-col gap-4 min-h-[350px]">
+
+          {/* Tarjeta Superior: Ingresos por Método de Pago */}
+          <div className="bg-white border border-border shadow-sm p-4">
+            <h3 className="text-sm font-bold text-text-secondary uppercase mb-4 pb-2 border-b border-border">Ingresos por Medio de Pago</h3>
+            <div className="flex flex-col gap-2">
+              {datos.metodos_pago.length === 0 && !isLoading ? (
+                <div className="text-sm text-text-secondary text-center py-2 font-bold">Sin datos</div>
+              ) : (
+                datos.metodos_pago.map((mp) => {
+                  const porcentaje = datos.total_facturado > 0
+                    ? ((mp.total / datos.total_facturado) * 100).toFixed(1)
+                    : "0.0";
+                  return (
+                    <div key={mp.metodo_pago} className="flex items-center justify-between p-3 bg-bg-panel border border-border">
+                      <span className="text-sm font-bold text-text-primary capitalize">{mp.metodo_pago}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-black text-accent">
+                          ${(mp.total / 100).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </span>
+                        <span className="text-[10px] font-bold text-text-secondary bg-white px-1.5 py-0.5 border border-border">
+                          {porcentaje}%
+                        </span>
+                      </div>
                     </div>
-                    <span className="text-sm font-bold text-text-primary">{prod.nombre}</span>
-                  </div>
-                  <div className="flex items-center gap-1 bg-white px-2 py-1 border border-border text-xs font-bold text-text-secondary">
-                    {prod.cantidad} <span className="font-normal opacity-70">Salidas</span>
-                  </div>
-                </div>
-              ))
-            )}
+                  );
+                })
+              )}
+            </div>
           </div>
+
+          {/* Tarjeta Inferior: Ranking Top 10 con scroll */}
+          <div className="bg-white border border-border shadow-sm p-4 flex flex-col flex-1 min-h-0">
+            <h3 className="text-sm font-bold text-text-secondary uppercase mb-4 pb-2 border-b border-border">Ranking de Ventas (Top 10)</h3>
+            <div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-3 pr-1">
+              {datos.ranking.length === 0 && !isLoading ? (
+                <div className="text-sm text-text-secondary h-full flex items-center justify-center font-bold">
+                  Información insuficiente
+                </div>
+              ) : (
+                datos.ranking.map((prod, i) => (
+                  <div key={`${prod.nombre}-${i}`} className="flex items-center justify-between p-3 bg-bg-panel border border-border hover:border-accent transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className="w-6 h-6 bg-accent rounded flex items-center justify-center text-white text-xs font-black">
+                        {i + 1}
+                      </div>
+                      <span className="text-sm font-bold text-text-primary">{prod.nombre}</span>
+                    </div>
+                    <div className="flex items-center gap-1 bg-white px-2 py-1 border border-border text-xs font-bold text-text-secondary">
+                      {prod.cantidad} <span className="font-normal opacity-70">Salidas</span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
         </div>
       </div>
 

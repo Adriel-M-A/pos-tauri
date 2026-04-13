@@ -91,8 +91,8 @@ db.transaction(() => {
   }
 })();
 
-// Metodos de pago posibles
-const METODOS_PAGO = ['Efectivo', 'Tarjeta de Débito', 'Tarjeta de Crédito', 'Transferencia'];
+// Métodos de pago posibles (deben coincidir exactamente con src/data/metodosPago.js)
+const METODOS_PAGO = ['efectivo', 'tarjeta', 'transferencia'];
 
 // 4. Simulador de 365 días de ventas
 console.log(`[4/5] Simulando 365 días de operación ininterrumpida... paciencia.`);

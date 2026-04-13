@@ -17,8 +17,15 @@ En la sección central izquierda se presenta un simple gráfico de barras azules
 - Muestra el monto total de ventas agrupado de forma inteligente. Si usted filtra por "Hoy" o "Ayer", las barras le mostrarán sus ingresos separados por hora. Si filtra por "Este Mes" o "Semana", las barras agruparán sus ventas día por día.
 - **Muestra únicamente datos reales**: El gráfico es dinámico y solo presentará columnas para aquellas horas o días en los que efectivamente hubo al menos un ingreso. Si su negocio cerró al mediodía y no hubo tickets, no se dibujarán barras vacías para esas horas.
  
+## Ingresos por Medio de Pago
+ 
+En la columna derecha de la pantalla, encontrará un panel que desglosa automáticamente cuánto dinero ingresó según cada forma de pago utilizada por sus clientes (Efectivo, Tarjeta, Transferencia).
+ 
+- Cada método de pago muestra el monto total recaudado en pesos y, a su lado, el porcentaje que representa respecto al total facturado. Esto le permite saber de un vistazo por qué vía entra la mayor parte de su liquidez.
+- Los datos se actualizan automáticamente según el período seleccionado, al igual que el resto de los informes.
+ 
 ## Ranking de Ventas (Top 10)
  
-La tabla a la derecha muestra en directo cuáles son sus productos "estrella", enumerando los 10 artículos más vendidos por su negocio en el período de tiempo seleccionado.
+Debajo del panel de métodos de pago, encontrará la tabla que muestra cuáles son sus productos "estrella", enumerando los 10 artículos más vendidos por su negocio en el período de tiempo seleccionado.
  
 - **Sólo productos por unidad**: Para mantener las estadísticas puras y precisas, este ranking muestra exclusivamente productos contables (unidades enteras como paquetes, bebidas, etc) y excluye los artículos a granel o pesables, evitando distorsionar la estadística al intentar comparar la venta de 1 botella con 500 gramos de fiambre.
