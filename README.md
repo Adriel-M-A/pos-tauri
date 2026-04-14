@@ -36,6 +36,7 @@ La arquitectura de este sistema está pensada para la **escalabilidad personaliz
 
 ### 📊 Informes y Auditoría
 *   **Dashboard Financiero**: KPIs clave (Ticket promedio, Total facturado, Ranking de productos).
+*   **Análisis de Medios de Pago**: Desglose detallado de ingresos por Efectivo, Tarjeta y Transferencia con cálculo automático de porcentajes de participación.
 *   **Gráficos Dinámicos**: Visualización de ventas diarias y tendencias.
 *   **Auditoría de Cierres**: Historial completo de turnos por mes con desglose de diferencias (faltantes/sobrantes).
 

@@ -323,7 +323,7 @@ function Cierre() {
                   value={movMotivo}
                   onChange={(e) => setMovMotivo(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleRegistrarMovimiento()}
-                  placeholder="Ej: Pago a proveedor"
+                  placeholder={showMovForm === "ingreso" ? "Ej: Cambio inicial / Ingreso extra" : "Ej: Pago a proveedor / Gastos varios"}
                   className="w-full px-3 py-2 border border-border text-sm outline-none focus:border-accent"
                 />
               </div>

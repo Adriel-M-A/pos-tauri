@@ -155,30 +155,30 @@ function Historial() {
         {/* TARJETONES (KPIs) */}
         <div className="flex gap-4">
           {/* KPI 1 */}
-          <div className="flex-1 flex items-center p-4 bg-white border border-border shadow-sm">
-            <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center text-accent mr-4">
-              <Receipt size={24} />
+          <div className="flex-1 flex items-center p-3 bg-white border border-border shadow-sm">
+            <div className="w-10 h-10 bg-accent/10 rounded-full flex items-center justify-center text-accent mr-3">
+              <Receipt size={20} />
             </div>
             <div>
-              <span className="text-xs font-bold text-text-secondary uppercase tracking-wider block mb-1">
+              <span className="text-xs font-bold text-text-secondary uppercase tracking-wider block mb-0.5">
                 Tickets Emitidos
               </span>
-              <span className="text-3xl font-black text-text-primary">
+              <span className="text-2xl font-black text-text-primary">
                 {kpis.cantidad}
               </span>
             </div>
           </div>
 
           {/* KPI 2 */}
-          <div className="flex-1 flex items-center p-4 bg-white border border-border shadow-sm">
-            <div className="w-12 h-12 bg-success/10 rounded-full flex items-center justify-center text-success mr-4">
-              <DollarSign size={24} />
+          <div className="flex-1 flex items-center p-3 bg-white border border-border shadow-sm">
+            <div className="w-10 h-10 bg-success/10 rounded-full flex items-center justify-center text-success mr-3">
+              <DollarSign size={20} />
             </div>
             <div>
-              <span className="text-xs font-bold text-text-secondary uppercase tracking-wider block mb-1">
+              <span className="text-xs font-bold text-text-secondary uppercase tracking-wider block mb-0.5">
                 Ingreso Diario
               </span>
-              <span className="text-3xl font-black text-text-primary">
+              <span className="text-2xl font-black text-text-primary">
                 ${(kpis.ingresoTotal / 100).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>
             </div>

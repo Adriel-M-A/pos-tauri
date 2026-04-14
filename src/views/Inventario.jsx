@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { Search, Plus, Loader2 } from "lucide-react";
+import { Search, Plus, Loader2, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { toast } from "sonner";
 import { invoke } from "@tauri-apps/api/core";
 import ModalProducto from "../components/ModalProducto";
@@ -9,6 +9,7 @@ function Inventario() {
   const [listaProductos, setListaProductos] = useState([]);
   const [busqueda, setBusqueda] = useState("");
   const [mostrarInactivos, setMostrarInactivos] = useState(false);
+  const [ordenCampos, setOrdenCampos] = useState({ campo: "codigo", asc: true });
 
   const [modalAbierto, setModalAbierto] = useState(false);
   const [productoEditando, setProductoEditando] = useState(null);
@@ -51,17 +52,47 @@ function Inventario() {
     cargarProductos();
   }, []);
 
-  // Filtrado reactivo en base a búsqueda y checkbox
+  // Filtrado reactivo en base a búsqueda y checkbox, y ordenamiento dinámico
   const filtrados = useMemo(() => {
-    return listaProductos.filter((p) => {
+    let result = listaProductos.filter((p) => {
       const matchBusqueda =
         p.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
         p.codigo.includes(busqueda);
       const matchActivo = mostrarInactivos ? true : p.activo === true;
       return matchBusqueda && matchActivo;
     });
-  }, [listaProductos, busqueda, mostrarInactivos]);
 
+    result.sort((a, b) => {
+      let valA = a[ordenCampos.campo];
+      let valB = b[ordenCampos.campo];
+
+      if (typeof valA === 'string') valA = valA.toLowerCase();
+      if (typeof valB === 'string') valB = valB.toLowerCase();
+
+      if (valA == null) valA = "";
+      if (valB == null) valB = "";
+
+      if (valA < valB) return ordenCampos.asc ? -1 : 1;
+      if (valA > valB) return ordenCampos.asc ? 1 : -1;
+      return 0;
+    });
+
+    return result;
+  }, [listaProductos, busqueda, mostrarInactivos, ordenCampos]);
+
+  // Manejador del ordenado
+  const handleSort = (campo) => {
+    if (ordenCampos.campo === campo) {
+      setOrdenCampos({ campo, asc: !ordenCampos.asc });
+    } else {
+      setOrdenCampos({ campo, asc: true });
+    }
+  };
+
+  const renderSortIcon = (campo) => {
+    if (ordenCampos.campo !== campo) return <ArrowUpDown size={14} className="opacity-30" />;
+    return ordenCampos.asc ? <ArrowUp size={14} className="text-accent" /> : <ArrowDown size={14} className="text-accent" />;
+  };
 
   // Guardar desde el modal (Nuevo o Edit) hacia la DB Cruda
   const manejarGuardadoModal = async (productoModificado, mantenerAbierto = false) => {
@@ -211,17 +242,45 @@ function Inventario() {
         <table className="w-full border-collapse table-fixed bg-white border border-border shadow-sm">
           <thead>
             <tr className="bg-bg-panel border-b border-border">
-              <th className="w-1/2 text-left text-xs font-semibold text-text-secondary px-4 py-3 uppercase">
-                NOMBRE
+              <th 
+                className="w-28 text-center text-xs font-semibold text-text-secondary px-4 py-3 uppercase cursor-pointer hover:bg-border/30 transition-colors select-none"
+                onClick={() => handleSort('codigo')}
+              >
+                <div className="flex items-center justify-center gap-2">
+                  CÓDIGO {renderSortIcon('codigo')}
+                </div>
               </th>
-              <th className="w-32 text-center text-xs font-semibold text-text-secondary px-4 py-3 uppercase">
-                TIPO
+              <th 
+                className="text-left text-xs font-semibold text-text-secondary px-4 py-3 uppercase cursor-pointer hover:bg-border/30 transition-colors select-none"
+                onClick={() => handleSort('nombre')}
+              >
+                <div className="flex items-center gap-2">
+                  NOMBRE {renderSortIcon('nombre')}
+                </div>
               </th>
-              <th className="w-32 text-right text-xs font-semibold text-text-secondary px-4 py-3 uppercase border-l border-border-light">
-                PRECIO ($)
+              <th 
+                className="w-32 text-center text-xs font-semibold text-text-secondary px-4 py-3 uppercase cursor-pointer hover:bg-border/30 transition-colors select-none"
+                onClick={() => handleSort('vende_por_peso')}
+              >
+                <div className="flex items-center justify-center gap-2">
+                  TIPO {renderSortIcon('vende_por_peso')}
+                </div>
               </th>
-              <th className="w-32 text-center text-xs font-semibold text-text-secondary px-4 py-3 uppercase border-l border-border-light">
-                STOCK
+              <th 
+                className="w-32 text-right text-xs font-semibold text-text-secondary px-4 py-3 uppercase border-l border-border-light cursor-pointer hover:bg-border/30 transition-colors select-none"
+                onClick={() => handleSort('precio')}
+              >
+                <div className="flex items-center justify-end gap-2">
+                  PRECIO ($) {renderSortIcon('precio')}
+                </div>
+              </th>
+              <th 
+                className="w-32 text-center text-xs font-semibold text-text-secondary px-4 py-3 uppercase border-l border-border-light cursor-pointer hover:bg-border/30 transition-colors select-none"
+                onClick={() => handleSort('stock')}
+              >
+                <div className="flex items-center justify-center gap-2">
+                  STOCK {renderSortIcon('stock')}
+                </div>
               </th>
             </tr>
           </thead>
@@ -234,20 +293,20 @@ function Inventario() {
                   key={producto.id}
                   className={`border-b border-border-light transition-colors hover:bg-accent-light/50 ${estaInactivo ? "opacity-50 grayscale bg-bg-panel" : ""}`}
                 >
+                  {/* CÓDIGO */}
+                  <td className="px-4 py-2 text-center text-xs text-text-secondary font-mono border-r border-border-light/50">
+                    {producto.codigo}
+                  </td>
+
                   {/* NOMBRE - Clickable para Form ABM */}
                   <td className="px-4 py-2">
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs text-text-secondary font-mono w-8">
-                        {producto.codigo}
-                      </span>
-                      <button
-                        onClick={() => editarFormularioProducto(producto)}
-                        className={`text-sm font-bold text-left cursor-pointer bg-transparent border-none p-0 flex flex-col ${estaInactivo ? "text-text-secondary line-through" : "text-accent hover:underline"}`}
-                      >
-                        {producto.nombre}
-                        {!producto.controla_stock && !producto.vende_por_peso && <span className="text-[10px] font-normal text-text-secondary decoration-transparent">Venta libre</span>}
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => editarFormularioProducto(producto)}
+                      className={`text-sm font-bold text-left cursor-pointer bg-transparent border-none p-0 flex flex-col ${estaInactivo ? "text-text-secondary line-through" : "text-accent hover:underline"}`}
+                    >
+                      {producto.nombre}
+                      {!producto.controla_stock && !producto.vende_por_peso && <span className="text-[10px] font-normal text-text-secondary decoration-transparent">Venta libre</span>}
+                    </button>
                   </td>
 
                   <td className="px-4 py-2 text-center">

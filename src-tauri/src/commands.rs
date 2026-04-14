@@ -152,8 +152,6 @@ pub async fn restaurar_backup(app_handle: tauri::AppHandle, pool: tauri::State<'
 
     // 4. Reiniciar la aplicación automáticamente para cargar la nueva base de datos
     app_handle.restart();
-
-    Ok(())
 }
 
 #[tauri::command]
