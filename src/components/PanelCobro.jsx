@@ -6,7 +6,7 @@ import KeyBadge from "./ui/KeyBadge";
 function PanelCobro({ subtotal, onCobrar }) {
   const [ajusteModalidad, setAjusteModalidad] = useState("descuento"); // 'descuento' o 'recargo'
   const [ajusteValor, setAjusteValor] = useState("");
-  const [metodoPago, setMetodoPago] = useState("efectivo");
+  const [metodoPago, setMetodoPago] = useState("transferencia");
   const [pagaCon, setPagaCon] = useState("");
 
   const pagaConRef = useRef(null);
@@ -59,7 +59,7 @@ function PanelCobro({ subtotal, onCobrar }) {
 
     setAjusteValor("");
     setAjusteModalidad("descuento");
-    setMetodoPago("efectivo");
+    setMetodoPago("transferencia");
     setPagaCon("");
   };
 
