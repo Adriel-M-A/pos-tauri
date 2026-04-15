@@ -1,4 +1,4 @@
-use crate::models::{ItemVenta, Producto, Venta, InformePayload, GraficoItem, RankingItem, MetodoPagoItem, Turno, CajaMovimiento, CierrePayload};
+use crate::models::{ItemVenta, Producto, Venta, VentaCreada, InformePayload, GraficoItem, RankingItem, MetodoPagoItem, Turno, CajaMovimiento, CierrePayload};
 use sqlx::SqlitePool;
 
 // =========== REPOSITORIO PRODUCTOS ===========
@@ -12,23 +12,39 @@ pub async fn repo_get_productos(pool: &SqlitePool) -> Result<Vec<Producto>, sqlx
 }
 
 pub async fn repo_create_producto(pool: &SqlitePool, prod: Producto) -> Result<i64, sqlx::Error> {
+    let mut tx = pool.begin().await?;
+
+    // Insertar con código temporal para obtener el ID real de la DB
     let result = sqlx::query(
         r#"
         INSERT INTO productos (codigo, nombre, precio, stock, vende_por_peso, controla_stock, activo)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        VALUES ('__TEMP__', ?, ?, ?, ?, ?, ?)
         "#
     )
-    .bind(prod.codigo)
-    .bind(prod.nombre)
+    .bind(&prod.nombre)
     .bind(prod.precio)
     .bind(prod.stock)
     .bind(prod.vende_por_peso)
     .bind(prod.controla_stock)
     .bind(prod.activo)
-    .execute(pool)
+    .execute(&mut *tx)
     .await?;
 
-    Ok(result.last_insert_rowid())
+    let new_id = result.last_insert_rowid();
+
+    // Generar el código definitivo basado en el ID real asignado por SQLite
+    // {:03} → mínimo 3 dígitos con cero-padding, crece naturalmente si supera 999
+    // Consistente con los códigos existentes: "001".."100".."999".."1000"..
+    let auto_codigo = format!("{:03}", new_id);
+
+    sqlx::query("UPDATE productos SET codigo = ? WHERE id = ?")
+        .bind(&auto_codigo)
+        .bind(new_id)
+        .execute(&mut *tx)
+        .await?;
+
+    tx.commit().await?;
+    Ok(new_id)
 }
 
 pub async fn repo_update_producto(pool: &SqlitePool, prod: Producto) -> Result<(), sqlx::Error> {
@@ -96,16 +112,17 @@ pub async fn repo_get_venta_items(pool: &SqlitePool, venta_id: i64) -> Result<Ve
     .await
 }
 
-pub async fn repo_crear_venta(pool: &SqlitePool, mut v: Venta) -> Result<i64, sqlx::Error> {
+pub async fn repo_crear_venta(pool: &SqlitePool, mut v: Venta) -> Result<VentaCreada, sqlx::Error> {
     // 1. Iniciar Transacción Atómica
     let mut tx = pool.begin().await?;
 
-    // Autogenerar número de comprobante contable (T-000001)
-    let count_tuple: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM ventas")
+    // Autogenerar número de comprobante usando MAX(id) para evitar colisiones con anuladas
+    let last_id: (i64,) = sqlx::query_as("SELECT COALESCE(MAX(id), 0) FROM ventas")
         .fetch_one(&mut *tx)
         .await?;
-    let correlativo = count_tuple.0 + 1;
+    let correlativo = last_id.0 + 1;
     v.numero_ticket = format!("T-{:06}", correlativo);
+    let numero_ticket_final = v.numero_ticket.clone();
 
     // Inyectar forzosamente el timestamp Local ignorando React UTC
     v.fecha = chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
@@ -116,19 +133,19 @@ pub async fn repo_crear_venta(pool: &SqlitePool, mut v: Venta) -> Result<i64, sq
         VALUES (?, ?, ?, ?, ?, ?, 0, ?)
         "#
     )
-    .bind(v.numero_ticket)
-    .bind(v.fecha)
+    .bind(&v.numero_ticket)
+    .bind(&v.fecha)
     .bind(v.subtotal)
     .bind(v.ajuste)
     .bind(v.total)
-    .bind(v.metodo_pago)
+    .bind(&v.metodo_pago)
     .bind(v.turno_id)
     .execute(&mut *tx)
     .await?;
     
     let venta_id = result.last_insert_rowid();
 
-    // 2. Insertar Items vinculados y descontar stock simultaneamente (Opcional según reglas)
+    // 2. Insertar items vinculados y descontar stock
     for res_item in v.items {
         sqlx::query(
             r#"
@@ -138,14 +155,14 @@ pub async fn repo_crear_venta(pool: &SqlitePool, mut v: Venta) -> Result<i64, sq
         )
         .bind(venta_id)
         .bind(res_item.producto_id)
-        .bind(res_item.nombre)
+        .bind(&res_item.nombre)
         .bind(res_item.cantidad)
         .bind(res_item.precio)
         .bind(res_item.subtotal)
         .execute(&mut *tx)
         .await?;
 
-        // Lógica dura: Si restamos inventario acá
+        // Descontar stock solo para productos por unidad que controlan inventario
         sqlx::query(
             r#"
             UPDATE productos 
@@ -161,7 +178,7 @@ pub async fn repo_crear_venta(pool: &SqlitePool, mut v: Venta) -> Result<i64, sq
 
     tx.commit().await?;
 
-    Ok(venta_id)
+    Ok(VentaCreada { id: venta_id, numero_ticket: numero_ticket_final })
 }
 
 pub async fn repo_anular_venta(pool: &SqlitePool, id_venta: i64) -> Result<(), sqlx::Error> {
@@ -451,11 +468,12 @@ pub async fn repo_cerrar_turno(
     })
 }
 
-/// Extrae todos los turnos cerrados de un mes específico (YYYY-MM) agrupados con sus cajas movimientos.
+/// Extrae todos los turnos cerrados de un mes específico (YYYY-MM) con sus movimientos.
+/// Usa JOIN para evitar el patrón N+1 queries.
 pub async fn repo_get_cierres_por_mes(pool: &SqlitePool, mes: String) -> Result<Vec<crate::models::TurnoConDetalles>, sqlx::Error> {
     let wildcard = format!("{}%", mes);
     
-    // 1. Obtener todos los turnos cerrados del mes
+    // Query 1: Todos los turnos cerrados del mes
     let turnos = sqlx::query_as::<_, Turno>(
         r#"SELECT * FROM turnos 
            WHERE estado = 'cerrado' AND fecha_cierre LIKE ? 
@@ -465,14 +483,32 @@ pub async fn repo_get_cierres_por_mes(pool: &SqlitePool, mes: String) -> Result<
     .fetch_all(pool)
     .await?;
 
-    let mut resultado = Vec::new();
+    if turnos.is_empty() {
+        return Ok(Vec::new());
+    }
 
-    // 2. Para cada turno, extraer sus movimientos manuales
-    for t in turnos {
-        let movs = repo_get_movimientos_turno(pool, t.id.unwrap_or(0)).await?;
-        
-        resultado.push(crate::models::TurnoConDetalles {
-            id: t.id.unwrap_or(0),
+    // Query 2: Todos los movimientos de esos turnos en UNA sola consulta (evita N+1)
+    let todos_movimientos = sqlx::query_as::<_, CajaMovimiento>(
+        r#"SELECT cm.* FROM caja_movimientos cm
+           INNER JOIN turnos t ON t.id = cm.turno_id
+           WHERE t.estado = 'cerrado' AND t.fecha_cierre LIKE ?
+           ORDER BY cm.fecha ASC"#
+    )
+    .bind(&wildcard)
+    .fetch_all(pool)
+    .await?;
+
+    // Armar el resultado combinando en memoria
+    let resultado = turnos.into_iter().map(|t| {
+        let turno_id = t.id.unwrap_or(0);
+        let movimientos_del_turno: Vec<CajaMovimiento> = todos_movimientos
+            .iter()
+            .filter(|m| m.turno_id == turno_id)
+            .cloned()
+            .collect();
+
+        crate::models::TurnoConDetalles {
+            id: turno_id,
             fecha_apertura: t.fecha_apertura,
             fecha_cierre: t.fecha_cierre,
             fondo_inicial: t.fondo_inicial,
@@ -481,9 +517,20 @@ pub async fn repo_get_cierres_por_mes(pool: &SqlitePool, mes: String) -> Result<
             diferencia: t.diferencia,
             estado: t.estado,
             observaciones: t.observaciones,
-            caja_movimientos: movs,
-        });
-    }
+            caja_movimientos: movimientos_del_turno,
+        }
+    }).collect();
 
     Ok(resultado)
+}
+
+/// Total acumulado de ventas en efectivo + otros medios del turno activo (sin anuladas)
+pub async fn repo_get_total_ventas_turno(pool: &SqlitePool, turno_id: i64) -> Result<i64, sqlx::Error> {
+    let result: (i64,) = sqlx::query_as(
+        "SELECT COALESCE(SUM(total), 0) FROM ventas WHERE turno_id = ? AND anulada = 0"
+    )
+    .bind(turno_id)
+    .fetch_one(pool)
+    .await?;
+    Ok(result.0)
 }

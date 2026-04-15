@@ -30,4 +30,22 @@ export default defineConfig(async () => ({
       ignored: ["**/src-tauri/**"],
     },
   },
+
+  build: {
+    rollupOptions: {
+      output: {
+        // Divide el bundle en chunks por grupo de librerías
+        // para reducir el tamaño del chunk principal y el tiempo de parseo
+        manualChunks: {
+          // React core y DOM
+          "vendor-react": ["react", "react-dom"],
+          // Librería de gráficos (la más pesada)
+          "vendor-charts": ["recharts"],
+          // Resto de dependencias de terceros
+          "vendor-libs": ["lucide-react", "date-fns", "sonner", "react-markdown"],
+        },
+      },
+    },
+  },
 }));
+

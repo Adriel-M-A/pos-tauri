@@ -22,6 +22,7 @@ function Cierre() {
 
   // Operación - Movimientos
   const [movimientos, setMovimientos] = useState([]);
+  const [totalVentasTurno, setTotalVentasTurno] = useState(0);
   const [showMovForm, setShowMovForm] = useState(null); // 'ingreso' | 'retiro' | null
   const [movMonto, setMovMonto] = useState("");
   const [movMotivo, setMovMotivo] = useState("");
@@ -40,9 +41,13 @@ function Cierre() {
       const turno = await invoke("get_turno_abierto");
       if (turno) {
         setTurnoActivo(turno);
-        // Cargar movimientos del turno
-        const movs = await invoke("get_movimientos_turno", { turnoId: turno.id });
+        // Cargar movimientos y total de ventas del turno en paralelo
+        const [movs, totalVentas] = await Promise.all([
+          invoke("get_movimientos_turno", { turnoId: turno.id }),
+          invoke("get_total_ventas_turno", { turnoId: turno.id }),
+        ]);
         setMovimientos(movs);
+        setTotalVentasTurno(totalVentas);
         setFase("operacion");
       } else {
         setFase("apertura");
@@ -107,9 +112,13 @@ function Cierre() {
         monto,
         motivo: movMotivo || (showMovForm === "ingreso" ? "Ingreso manual" : "Retiro manual"),
       });
-      // Refrescar movimientos
-      const movs = await invoke("get_movimientos_turno", { turnoId: turnoActivo.id });
+      // Refrescar movimientos y total de ventas
+      const [movs, totalVentas] = await Promise.all([
+        invoke("get_movimientos_turno", { turnoId: turnoActivo.id }),
+        invoke("get_total_ventas_turno", { turnoId: turnoActivo.id }),
+      ]);
       setMovimientos(movs);
+      setTotalVentasTurno(totalVentas);
 
       toast.success(showMovForm === "ingreso" ? "Ingreso de dinero registrado" : "Retiro de dinero registrado", {
         description: `Monto: $${(monto / 100).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
@@ -258,15 +267,22 @@ function Cierre() {
               </p>
             </div>
           </div>
-          <button
-            onClick={handleIniciarCierre}
-            className="flex items-center gap-2 px-4 py-2 border border-danger text-danger
-                       hover:bg-danger hover:text-white font-bold text-sm cursor-pointer transition-colors"
-          >
-            <Lock size={16} />
-            Iniciar Cierre
-            <KeyBadge tecla="F2" className="bg-danger/20 text-danger border-danger/30" />
-          </button>
+          <div className="flex items-center gap-6">
+            {/* Total de ventas del turno activo */}
+            <div className="text-right">
+              <p className="text-xs font-bold text-text-secondary uppercase">Ventas del Turno</p>
+              <p className="text-lg font-black text-success">${(totalVentasTurno / 100).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+            </div>
+            <button
+              onClick={handleIniciarCierre}
+              className="flex items-center gap-2 px-4 py-2 border border-danger text-danger
+                         hover:bg-danger hover:text-white font-bold text-sm cursor-pointer transition-colors"
+            >
+              <Lock size={16} />
+              Iniciar Cierre
+              <KeyBadge tecla="F2" className="bg-danger/20 text-danger border-danger/30" />
+            </button>
+          </div>
         </div>
 
         {/* Zona de acciones: Botones de movimientos */}

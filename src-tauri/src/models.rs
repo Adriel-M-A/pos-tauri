@@ -112,6 +112,13 @@ pub struct CierrePayload {
     pub diferencia: i64,
 }
 
+/// Resultado de una venta creada: devuelve id y número de ticket al frontend
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct VentaCreada {
+    pub id: i64,
+    pub numero_ticket: String,
+}
+
 /// Envoltorio completo de un turno para el historial de auditoría
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct TurnoConDetalles {

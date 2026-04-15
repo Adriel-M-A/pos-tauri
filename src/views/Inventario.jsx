@@ -102,13 +102,9 @@ function Inventario() {
         // --- Editar Existente ---
         await invoke("update_producto", { prod: productoModificado });
       } else {
-        // --- Nuevo Producto ---
-        // Generamos un código falso atado al próximo ID lógicamente disponible ya que aún no pedimos Código de Barras
-        const nextLocalId = Math.max(...listaProductos.map((p) => p.id || 0), 0) + 1;
-        const autoCodigo = String(nextLocalId).padStart(3, "0");
-
+        // --- Nuevo Producto: el código se autogenera en Rust usando el ID real de BD ---
         await invoke("create_producto", {
-          prod: { ...productoModificado, codigo: autoCodigo }
+          prod: { ...productoModificado, codigo: "" }
         });
       }
 
@@ -167,9 +163,16 @@ function Inventario() {
     try {
       await invoke("update_producto", { prod: clon });
       await cargarProductos();
-      toast.success("Precio actualizado", {
-        description: `El precio de ${clon.nombre} ahora es $${(clon.precio / 100).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-      });
+
+      if (campo === "precio") {
+        toast.success("Precio actualizado", {
+          description: `${clon.nombre}: $${(clon.precio / 100).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+        });
+      } else {
+        toast.success("Stock actualizado", {
+          description: `${clon.nombre}: ${clon.stock} un.`
+        });
+      }
     } catch (err) {
       console.error("Fallo edición rápida:", err);
       toast.error("Fallo la actualización rápida", {

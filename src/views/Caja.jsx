@@ -161,7 +161,7 @@ function Caja({ onCambiarVista }) {
             let newVal = valorStr;
             if (item.controla_stock && valorStr !== "") {
               const valorNumerico = Number(valorStr);
-              // Suma de otros items en Kg
+              // Suma de otros items del mismo producto en Kg
               const otherItemsSumKg = prev
                 .filter(other => other.id === item.id && other.ticketId !== ticketId)
                 .reduce((sum, other) => sum + (Number(other.cantidad || 0) / (other.vende_por_peso ? 1000 : 1)), 0);
@@ -170,10 +170,10 @@ function Caja({ onCambiarVista }) {
 
               if (otherItemsSumKg + valorIntentoKg > item.stock) {
                 overflown = true;
-                // Calculamos cuánto realmente puede exprimir en Kg
-                stockRestanteKg = Math.max(0, item.stock - otherItemsSumKg);
-                // Convertimos de vuelta a gramos si es pesable para mostrarlo en el input
-                newVal = item.vende_por_peso ? String(stockRestanteKg * 1000) : String(Math.floor(stockRestanteKg));
+                // Calcular cuánto puede exprimir realmente
+                stockRestante = Math.max(0, item.stock - otherItemsSumKg);
+                // Convertir de vuelta a gramos si es pesable
+                newVal = item.vende_por_peso ? String(stockRestante * 1000) : String(Math.floor(stockRestante));
               }
             }
             return { ...item, cantidad: newVal };
@@ -184,7 +184,7 @@ function Caja({ onCambiarVista }) {
         if (overflown) {
           toast.error("Límite de stock excedido", {
             description: "La cantidad se redujo al máximo posible en existencia.",
-            id: 'stock-warn-toast' // ID fuerte para que no explote de toasts si presiona teclas rápido
+            id: 'stock-warn-toast'
           });
         }
         
@@ -249,10 +249,10 @@ function Caja({ onCambiarVista }) {
     };
 
     try {
-      await invoke("create_venta", { v: paqueteDeVenta });
+      const ventaCreada = await invoke("create_venta", { v: paqueteDeVenta });
       vaciarTicket();
       toast.success("Venta registrada con éxito", {
-        description: "El ticket se ha guardado en el historial."
+        description: `Ticket ${ventaCreada.numero_ticket} guardado en el historial.`
       });
     } catch (error) {
       console.error("Transacción Rollback ejecutada: Falla al grabar ticket.", error);
@@ -261,7 +261,7 @@ function Caja({ onCambiarVista }) {
         duration: 4000,
       });
     }
-  }, [carrito]);
+  }, [carrito, turnoActivo]);
 
   const manejarTeclas = (e) => {
     if (!mostrarDropdown) return;

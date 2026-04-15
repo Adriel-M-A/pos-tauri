@@ -1,11 +1,12 @@
 use tauri::State;
 use sqlx::SqlitePool;
-use crate::models::{Producto, Venta, ItemVenta, InformePayload, Turno, CajaMovimiento, CierrePayload};
+use crate::models::{Producto, Venta, VentaCreada, ItemVenta, InformePayload, Turno, CajaMovimiento, CierrePayload};
 use crate::repositories::{
     repo_get_productos, repo_create_producto, repo_update_producto, repo_search_productos,
     repo_get_ventas_by_date, repo_get_venta_items, repo_crear_venta, repo_anular_venta,
     repo_get_informe,
-    repo_get_turno_abierto, repo_abrir_turno, repo_registrar_movimiento, repo_get_movimientos_turno, repo_cerrar_turno, repo_get_cierres_por_mes
+    repo_get_turno_abierto, repo_abrir_turno, repo_registrar_movimiento, repo_get_movimientos_turno,
+    repo_cerrar_turno, repo_get_cierres_por_mes, repo_get_total_ventas_turno
 };
 
 // --- PRODUCTOS COMANDOS ---
@@ -43,7 +44,7 @@ pub async fn get_venta_items(pool: State<'_, SqlitePool>, venta_id: i64) -> Resu
 }
 
 #[tauri::command]
-pub async fn create_venta(pool: State<'_, SqlitePool>, v: Venta) -> Result<i64, String> {
+pub async fn create_venta(pool: State<'_, SqlitePool>, v: Venta) -> Result<VentaCreada, String> {
     repo_crear_venta(&*pool, v).await.map_err(|e| { eprintln!("Error: {}", e); e.to_string() })
 }
 
@@ -89,6 +90,11 @@ pub async fn cerrar_turno(pool: State<'_, SqlitePool>, turno_id: i64, total_decl
 #[tauri::command]
 pub async fn get_historial_cierres(pool: State<'_, SqlitePool>, mes: String) -> Result<Vec<crate::models::TurnoConDetalles>, String> {
     repo_get_cierres_por_mes(&*pool, mes).await.map_err(|e| { eprintln!("Error: {}", e); e.to_string() })
+}
+
+#[tauri::command]
+pub async fn get_total_ventas_turno(pool: State<'_, SqlitePool>, turno_id: i64) -> Result<i64, String> {
+    repo_get_total_ventas_turno(&*pool, turno_id).await.map_err(|e| { eprintln!("Error: {}", e); e.to_string() })
 }
 
 // --- BACKUP COMANDOS ---

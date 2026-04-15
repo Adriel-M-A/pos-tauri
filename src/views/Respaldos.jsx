@@ -115,109 +115,118 @@ function Respaldos() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-bg-main">
+    <div className="flex flex-col h-full bg-bg-main relative">
 
-      {/* Cabecera */}
-      <div className="h-16 px-6 bg-bg-panel border-b border-border flex items-center">
+      {/* Barra de carga delgada — carga inicial y durante operaciones */}
+      {(isLoading || isProcessing) && (
+        <div className="absolute top-0 left-0 right-0 h-1 bg-border overflow-hidden z-50">
+          <div className="w-1/3 h-full bg-accent animate-pulse"></div>
+        </div>
+      )}
+
+      {/* Panel superior — mismo patrón que Historial e Inventario */}
+      <div className="p-4 bg-bg-panel border-b border-border flex items-center">
         <h1 className="text-lg font-black text-text-primary tracking-widest uppercase">
           Copias de Seguridad
         </h1>
       </div>
 
-      {/* Contenido principal */}
-      <div className="flex-1 overflow-auto p-8 max-w-3xl mx-auto w-full">
+      {/* Contenido centrado (razonable para 2 tarjetas de acción) */}
+      <div className="flex-1 overflow-auto p-4">
+        <div className="max-w-3xl mx-auto flex flex-col gap-6">
 
-        {/* Alerta de estado */}
-        {!isLoading && (
-          <div className={`p-4 border mb-8 flex items-center gap-4 ${necesitaBackup
-              ? "bg-danger/5 border-danger/30"
-              : "bg-success/5 border-success/30"
-            }`}>
-            {necesitaBackup ? (
-              <AlertTriangle size={24} className="text-danger shrink-0" />
-            ) : (
-              <CheckCircle size={24} className="text-success shrink-0" />
-            )}
-            <div>
-              <p className="text-sm font-bold text-text-primary">
-                {dias === null
-                  ? "Nunca se realizó un respaldo de la base de datos."
-                  : dias === 0
-                    ? "La última copia de seguridad fue realizada hoy."
-                    : `La última copia de seguridad fue realizada hace ${dias} día${dias > 1 ? "s" : ""}.`
-                }
-              </p>
-              {necesitaBackup && (
-                <p className="text-xs text-text-secondary mt-1">
-                  Se recomienda realizar un respaldo cada 30 días como mínimo para proteger su información.
-                </p>
+          {/* Alerta de estado */}
+          {!isLoading && (
+            <div className={`p-4 border flex items-center gap-4 ${necesitaBackup
+                ? "bg-danger/5 border-danger/30"
+                : "bg-success/5 border-success/30"
+              }`}>
+              {necesitaBackup ? (
+                <AlertTriangle size={24} className="text-danger shrink-0" />
+              ) : (
+                <CheckCircle size={24} className="text-success shrink-0" />
               )}
+              <div>
+                <p className="text-sm font-bold text-text-primary">
+                  {dias === null
+                    ? "Nunca se realizó un respaldo de la base de datos."
+                    : dias === 0
+                      ? "La última copia de seguridad fue realizada hoy."
+                      : `La última copia de seguridad fue realizada hace ${dias} día${dias > 1 ? "s" : ""}.`
+                  }
+                </p>
+                {necesitaBackup && (
+                  <p className="text-xs text-text-secondary mt-1">
+                    Se recomienda realizar un respaldo cada 30 días como mínimo para proteger su información.
+                  </p>
+                )}
+              </div>
             </div>
+          )}
+
+          {/* Info del último backup */}
+          {backupInfo && (
+            <div className="p-4 bg-white border border-border">
+              <h3 className="text-xs font-bold text-text-secondary uppercase mb-3 pb-2 border-b border-border">
+                Último Respaldo Registrado
+              </h3>
+              <div className="flex items-center gap-3 mb-2">
+                <Clock size={14} className="text-text-secondary" />
+                <span className="text-sm text-text-primary font-medium">{backupInfo.ultimo_backup}</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <HardDriveDownload size={14} className="text-text-secondary" />
+                <span className="text-xs text-text-secondary truncate">{backupInfo.ruta}</span>
+              </div>
+            </div>
+          )}
+
+          {/* Tarjetas de acción */}
+          <div className="grid grid-cols-2 gap-6">
+
+            {/* Crear Backup */}
+            <div className="bg-white border border-border p-6 flex flex-col items-center text-center">
+              <div className="w-16 h-16 bg-accent/10 text-accent flex items-center justify-center mb-4">
+                <HardDriveDownload size={32} />
+              </div>
+              <h3 className="text-sm font-black text-text-primary uppercase mb-2">Crear Respaldo</h3>
+              <p className="text-xs text-text-secondary mb-6 leading-relaxed">
+                Genera una copia exacta de toda su base de datos (ventas, productos, cierres) y la guarda en la carpeta que usted elija.
+              </p>
+              <button
+                onClick={handleCrearBackup}
+                disabled={isProcessing}
+                className={`w-full py-3 text-sm font-bold uppercase border-none cursor-pointer ${isProcessing
+                    ? "bg-border text-text-secondary cursor-not-allowed"
+                    : "bg-accent text-white hover:bg-accent/90 transition-colors"
+                  }`}
+              >
+                {isProcessing ? "Procesando..." : "Elegir Carpeta y Respaldar"}
+              </button>
+            </div>
+
+            {/* Restaurar Backup */}
+            <div className="bg-white border border-border p-6 flex flex-col items-center text-center">
+              <div className="w-16 h-16 bg-danger/10 text-danger flex items-center justify-center mb-4">
+                <HardDriveUpload size={32} />
+              </div>
+              <h3 className="text-sm font-black text-text-primary uppercase mb-2">Restaurar Respaldo</h3>
+              <p className="text-xs text-text-secondary mb-6 leading-relaxed">
+                Sobreescribe la base de datos actual con una copia anterior. Esto reemplazará todos los datos actuales por los del archivo seleccionado.
+              </p>
+              <button
+                onClick={handleSeleccionarRestauracion}
+                disabled={isProcessing}
+                className={`w-full py-3 text-sm font-bold uppercase border-none cursor-pointer ${isProcessing
+                    ? "bg-border text-text-secondary cursor-not-allowed"
+                    : "bg-white text-danger border border-danger hover:bg-danger/5 transition-colors"
+                  }`}
+              >
+                {isProcessing ? "Procesando..." : "Seleccionar Archivo .db"}
+              </button>
+            </div>
+
           </div>
-        )}
-
-        {/* Info del último backup */}
-        {backupInfo && (
-          <div className="p-4 bg-white border border-border mb-8">
-            <h3 className="text-xs font-bold text-text-secondary uppercase mb-3 pb-2 border-b border-border">
-              Último Respaldo Registrado
-            </h3>
-            <div className="flex items-center gap-3 mb-2">
-              <Clock size={14} className="text-text-secondary" />
-              <span className="text-sm text-text-primary font-medium">{backupInfo.ultimo_backup}</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <HardDriveDownload size={14} className="text-text-secondary" />
-              <span className="text-xs text-text-secondary truncate">{backupInfo.ruta}</span>
-            </div>
-          </div>
-        )}
-
-        {/* Acciones */}
-        <div className="grid grid-cols-2 gap-6">
-
-          {/* Crear Backup */}
-          <div className="bg-white border border-border p-6 flex flex-col items-center text-center">
-            <div className="w-16 h-16 bg-accent/10 text-accent flex items-center justify-center mb-4">
-              <HardDriveDownload size={32} />
-            </div>
-            <h3 className="text-sm font-black text-text-primary uppercase mb-2">Crear Respaldo</h3>
-            <p className="text-xs text-text-secondary mb-6 leading-relaxed">
-              Genera una copia exacta de toda su base de datos (ventas, productos, cierres) y la guarda en la carpeta que usted elija.
-            </p>
-            <button
-              onClick={handleCrearBackup}
-              disabled={isProcessing}
-              className={`w-full py-3 text-sm font-bold uppercase border-none cursor-pointer ${isProcessing
-                  ? "bg-border text-text-secondary cursor-not-allowed"
-                  : "bg-accent text-white hover:bg-accent/90"
-                }`}
-            >
-              {isProcessing ? "Procesando..." : "Elegir Carpeta y Respaldar"}
-            </button>
-          </div>
-
-          {/* Restaurar Backup */}
-          <div className="bg-white border border-border p-6 flex flex-col items-center text-center">
-            <div className="w-16 h-16 bg-danger/10 text-danger flex items-center justify-center mb-4">
-              <HardDriveUpload size={32} />
-            </div>
-            <h3 className="text-sm font-black text-text-primary uppercase mb-2">Restaurar Respaldo</h3>
-            <p className="text-xs text-text-secondary mb-6 leading-relaxed">
-              Sobreescribe la base de datos actual con una copia anterior. Esto reemplazará todos los datos actuales por los del archivo seleccionado.
-            </p>
-            <button
-              onClick={handleSeleccionarRestauracion}
-              disabled={isProcessing}
-              className={`w-full py-3 text-sm font-bold uppercase border-none cursor-pointer ${isProcessing
-                  ? "bg-border text-text-secondary cursor-not-allowed"
-                  : "bg-white text-danger border border-danger hover:bg-danger/5"
-                }`}
-            >
-              {isProcessing ? "Procesando..." : "Seleccionar Archivo .db"}
-            </button>
-          </div>
-
         </div>
       </div>
 
@@ -238,3 +247,4 @@ function Respaldos() {
 }
 
 export default Respaldos;
+

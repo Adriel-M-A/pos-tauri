@@ -37,6 +37,7 @@ pub fn run() {
             commands::get_movimientos_turno,
             commands::cerrar_turno,
             commands::get_historial_cierres,
+            commands::get_total_ventas_turno,
             commands::crear_backup,
             commands::restaurar_backup,
             commands::get_backup_info

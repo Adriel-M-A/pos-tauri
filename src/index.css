@@ -49,10 +49,9 @@ html, body, #root {
   color: var(--color-text-primary);
 }
 
-/* Desactivar animaciones globalmente */
+/* Desactivar animaciones, pero mantener transiciones de hover para feedback visual */
 *, *::before, *::after {
   animation: none !important;
-  transition: none !important;
 }
 
 /* Scrollbar minimalista */
