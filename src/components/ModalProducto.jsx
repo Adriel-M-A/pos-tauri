@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { X, AlertCircle } from "lucide-react";
+import Boton from "./ui/Boton";
 import CharacterCount from "./ui/CharacterCount";
 
 function ModalProducto({ isOpen, onClose, onSave, productoBase }) {
@@ -221,20 +222,22 @@ function ModalProducto({ isOpen, onClose, onSave, productoBase }) {
 
             <div className="flex gap-2">
               {!isEditing && (
-                <button
+                <Boton
                   type="button"
+                  variante="secundario"
                   onClick={(e) => handleSave(e, true)}
-                  className="px-4 py-2 bg-bg-main hover:bg-border border border-border text-text-primary text-sm font-bold cursor-pointer transition-colors"
+                  className="px-4 py-2"
                 >
                   Guardar y Crear Otro
-                </button>
+                </Boton>
               )}
-              <button
+              <Boton
                 type="submit"
-                className="px-6 py-2 bg-accent hover:bg-accent-hover text-white text-sm font-bold cursor-pointer border-none"
+                variante="primario"
+                className="px-6 py-2"
               >
                 {isEditing ? "Guardar Cambios" : "Guardar"}
-              </button>
+              </Boton>
             </div>
           </div>
         </form>

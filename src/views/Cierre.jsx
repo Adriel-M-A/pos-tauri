@@ -12,6 +12,7 @@ import { formatearMoneda } from "../utils/formato";
 import ConfirmModal from "../components/ui/ConfirmModal";
 import CharacterCount from "../components/ui/CharacterCount";
 import EstadoVacio from "../components/ui/EstadoVacio";
+import Boton from "../components/ui/Boton";
 
 function Cierre() {
   // Estado global de la vista: 'cargando' | 'apertura' | 'operacion' | 'cerrando' | 'resumen'
@@ -224,16 +225,17 @@ function Cierre() {
             />
           </div>
 
-          <button
+          <Boton
+            variante="primario"
+            icono={Unlock}
+            cargando={isLoading}
+            disabled={!fondoInicial}
             onClick={handleAbrirTurno}
-            disabled={isLoading || !fondoInicial}
-            className="w-full py-4 bg-accent text-white font-black text-sm uppercase tracking-wider
-                       border-none cursor-pointer hover:bg-accent/90 transition-colors
-                       disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            ancho="full"
+            className="py-4 text-sm tracking-wider"
           >
-            {isLoading ? <Loader2 size={18} className="animate-spin" /> : <Unlock size={18} />}
             Abrir Turno
-          </button>
+          </Boton>
         </div>
       </div>
     );
@@ -266,35 +268,36 @@ function Cierre() {
               <p className="text-xs font-bold text-text-secondary uppercase">Ventas del Turno</p>
               <p className="text-lg font-black text-success">${formatearMoneda(totalVentasTurno)}</p>
             </div>
-            <button
+            <Boton
+              variante="secundario"
+              icono={Lock}
+              atajo="F2"
               onClick={handleIniciarCierre}
-              className="flex items-center gap-2 px-4 py-2 bg-white border border-border text-text-primary
-                         hover:bg-border/50 font-bold text-sm cursor-pointer transition-colors"
+              className="px-4 py-2"
             >
-              <Lock size={16} />
               Iniciar Cierre
-              <KeyBadge tecla="F2" className="bg-border text-text-secondary border-border" />
-            </button>
+            </Boton>
           </div>
         </div>
 
         {/* Zona de acciones: Botones de movimientos */}
         <div className="flex gap-4">
-          <button
+          <Boton
+            variante={showMovForm === "ingreso" ? "primario" : "secundario"}
+            icono={ArrowDownCircle}
             onClick={() => { setShowMovForm(showMovForm === "ingreso" ? null : "ingreso"); setMovMonto(""); setMovMotivo(""); }}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 font-bold text-sm border cursor-pointer transition-colors ${showMovForm === "ingreso"
-              ? "bg-accent text-white border-accent"
-              : "bg-white text-accent border-border hover:border-accent/10"
-              }`}
+            className={`flex-1 ${showMovForm !== "ingreso" ? "text-accent hover:border-accent/10 border-transparent" : ""}`}
           >
-            <ArrowDownCircle size={18} /> Registrar Ingreso
-          </button>
-          <button
+            Registrar Ingreso
+          </Boton>
+          <Boton
+            variante="peligro-ghost"
+            icono={ArrowUpCircle}
             onClick={() => { setShowMovForm(showMovForm === "retiro" ? null : "retiro"); setMovMonto(""); setMovMotivo(""); }}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 font-bold text-sm border cursor-pointer transition-colors bg-transparent text-danger border-danger hover:bg-danger/10`}
+            className="flex-1"
           >
-            <ArrowUpCircle size={18} /> Registrar Retiro
-          </button>
+            Registrar Retiro
+          </Boton>
         </div>
 
         {/* Formulario de movimiento (condicional) */}
@@ -334,15 +337,15 @@ function Cierre() {
                 />
               </div>
               <div className="flex items-end">
-                <button
+                <Boton
+                  variante={showMovForm === "ingreso" ? "primario" : "peligro"}
+                  cargando={isLoading}
+                  disabled={!movMonto}
                   onClick={handleRegistrarMovimiento}
-                  disabled={isLoading || !movMonto}
-                  className={`px-6 py-2 font-bold text-sm text-white border-none cursor-pointer 
-                             disabled:opacity-40 disabled:cursor-not-allowed ${showMovForm === "ingreso" ? "bg-accent hover:bg-accent-hover" : "bg-danger hover:bg-danger/90"
-                    }`}
+                  className="px-6 py-2"
                 >
                   Confirmar
-                </button>
+                </Boton>
               </div>
             </div>
           </div>
@@ -419,7 +422,7 @@ function Cierre() {
       <div className="flex items-center justify-center h-full bg-bg-main">
         <div className="w-full max-w-md bg-white border-2 border-danger shadow-sm p-8">
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-12 h-12 bg-danger/10 rounded-full flex items-center justify-center text-danger">
+            <div className="w-12 h-12 bg-danger/10 flex items-center justify-center text-danger">
               <Lock size={24} />
             </div>
             <div>
@@ -470,23 +473,23 @@ function Cierre() {
           </div>
 
           <div className="flex gap-3">
-            <button
+            <Boton
+              variante="secundario"
               onClick={() => setFase("operacion")}
-              className="flex-1 py-3 bg-bg-panel text-text-secondary font-bold text-sm border border-border
-                         cursor-pointer hover:bg-border/50 transition-colors"
+              className="flex-1"
             >
               Cancelar
-            </button>
-            <button
+            </Boton>
+            <Boton
+              variante="peligro"
+              icono={Lock}
+              cargando={isLoading}
+              disabled={!totalDeclarado}
               onClick={handleFinalizarTurno}
-              disabled={isLoading || !totalDeclarado}
-              className="flex-1 py-3 bg-danger text-white font-black text-sm uppercase
-                         border-none cursor-pointer hover:bg-danger/90 transition-colors
-                         disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="flex-1"
             >
-              {isLoading ? <Loader2 size={18} className="animate-spin" /> : <Lock size={18} />}
               Finalizar Turno
-            </button>
+            </Boton>
           </div>
         </div>
       </div>
@@ -504,7 +507,7 @@ function Cierre() {
       <div className="flex items-center justify-center h-full bg-bg-main">
         <div className="w-full max-w-lg bg-white border border-border shadow-sm p-8">
           <div className="flex items-center gap-3 mb-6">
-            <div className={`w-12 h-12 rounded-full flex items-center justify-center ${esExacto ? "bg-success/10 text-success" : esSobrante ? "bg-accent/10 text-accent" : "bg-danger/10 text-danger"
+            <div className={`w-12 h-12 flex items-center justify-center ${esExacto ? "bg-success/10 text-success" : esSobrante ? "bg-accent/10 text-accent" : "bg-danger/10 text-danger"
               }`}>
               {esExacto ? <CheckCircle2 size={24} /> : esSobrante ? <AlertTriangle size={24} /> : <XCircle size={24} />}
             </div>
@@ -552,7 +555,10 @@ function Cierre() {
             </div>
           </div>
 
-          <button
+          <Boton
+            variante="primario"
+            icono={Banknote}
+            ancho="full"
             onClick={() => {
               setResumenCierre(null);
               setFondoInicial("");
@@ -561,12 +567,9 @@ function Cierre() {
               setMovimientos([]);
               setFase("apertura");
             }}
-            className="w-full py-3 bg-accent text-white font-black text-sm uppercase
-                       border-none cursor-pointer hover:bg-accent/90 transition-colors flex items-center justify-center gap-2"
           >
-            <Banknote size={18} />
             Abrir Nuevo Turno
-          </button>
+          </Boton>
         </div>
       </div>
     );

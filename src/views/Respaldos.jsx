@@ -7,6 +7,7 @@ import { differenceInCalendarDays } from "date-fns";
 import { parsearFechaDB } from "../utils/fecha";
 import ConfirmModal from "../components/ui/ConfirmModal";
 import TituloVista from "../components/ui/TituloVista";
+import Boton from "../components/ui/Boton";
 
 function Respaldos() {
   const [backupInfo, setBackupInfo] = useState(null);
@@ -192,16 +193,16 @@ function Respaldos() {
                   Genera una copia exacta de toda su base de datos (ventas, productos, cierres) y la guarda en la carpeta que usted elija.
                 </p>
               </div>
-              <button
+              <Boton
+                variante="primario"
                 onClick={handleCrearBackup}
                 disabled={isProcessing}
-                className={`w-full py-3 text-sm font-bold uppercase border cursor-pointer transition-colors ${isProcessing
-                    ? "bg-border text-text-secondary border-border cursor-not-allowed"
-                    : "bg-accent text-white border-accent hover:bg-accent/90"
-                  }`}
+                cargando={isProcessing}
+                className="py-3"
+                ancho="full"
               >
                 {isProcessing ? "Procesando..." : "Elegir Carpeta y Respaldar"}
-              </button>
+              </Boton>
             </div>
 
             {/* Restaurar Backup */}
@@ -212,16 +213,16 @@ function Respaldos() {
                   Sobreescribe la base de datos actual con una copia anterior. Esto reemplazará todos los datos actuales por los del archivo seleccionado.
                 </p>
               </div>
-              <button
+              <Boton
+                variante="peligro-ghost"
                 onClick={handleSeleccionarRestauracion}
                 disabled={isProcessing}
-                className={`w-full py-3 text-sm font-bold uppercase border cursor-pointer transition-colors ${isProcessing
-                    ? "bg-border text-text-secondary border-border cursor-not-allowed"
-                    : "bg-transparent text-danger border-danger hover:bg-danger/10"
-                  }`}
+                cargando={isProcessing}
+                className="py-3"
+                ancho="full"
               >
                 {isProcessing ? "Procesando..." : "Seleccionar Archivo .db"}
-              </button>
+              </Boton>
             </div>
 
           </div>

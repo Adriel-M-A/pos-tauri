@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { DollarSign, Plus, Minus } from "lucide-react";
 import { metodosPago } from "../data/metodosPago";
 import KeyBadge from "./ui/KeyBadge";
+import Boton from "./ui/Boton";
 import { formatearMoneda } from "../utils/formato";
 
 function PanelCobro({ subtotal, onCobrar }) {
@@ -223,23 +224,18 @@ function PanelCobro({ subtotal, onCobrar }) {
       </div>
 
       <div className="p-4 border-t border-border bg-bg-main">
-        <button
+        <Boton
           id="btn-cobrar"
+          variante="primario"
+          icono={DollarSign}
+          atajo="F12"
           onClick={ejecutarCobro}
           disabled={!puedeCobrar}
-          className={`
-            w-full py-4 text-xl font-bold border-none cursor-pointer flex items-center justify-center gap-2 shadow-md
-            ${
-              puedeCobrar
-                ? "bg-accent text-white hover:bg-accent-hover"
-                : "bg-border-light text-text-secondary cursor-not-allowed opacity-70"
-            }
-          `}
+          ancho="full"
+          className="py-4 text-xl shadow-md"
         >
-          <DollarSign size={24} strokeWidth={2.5}/>
           COBRAR
-          <KeyBadge tecla="F12" />
-        </button>
+        </Boton>
       </div>
     </div>
   );

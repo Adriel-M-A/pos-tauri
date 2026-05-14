@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { Search, Plus, Loader2, PackageOpen, AlertTriangle, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { toast } from "sonner";
+import Boton from "../components/ui/Boton";
 import { invoke } from "@tauri-apps/api/core";
 import LoadingBar from "../components/ui/LoadingBar";
 import { formatearMoneda } from "../utils/formato";
@@ -227,15 +228,16 @@ function Inventario() {
         </div>
 
         {/* Botón de Acción Principal */}
-        <button
+        <Boton
+          variante="primario"
+          icono={Plus}
+          atajo="F2"
           onClick={nuevoProducto}
-          className="flex items-center justify-center gap-2 px-6 py-2 bg-success hover:bg-success/90 text-white font-bold text-sm border-none cursor-pointer shadow-sm transition-colors"
           disabled={isLoading}
+          className="px-6 py-2 shadow-sm"
         >
-          <Plus size={18} />
           Nuevo Producto
-          <KeyBadge tecla="F2" />
-        </button>
+        </Boton>
       </div>
 
       {/* Grilla / Inventario Principal */}

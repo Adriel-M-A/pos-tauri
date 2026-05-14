@@ -8,6 +8,7 @@ import LoadingBar from "../components/ui/LoadingBar";
 import { formatearMoneda } from "../utils/formato";
 import ConfirmModal from "../components/ui/ConfirmModal";
 import EstadoVacio from "../components/ui/EstadoVacio";
+import Boton from "../components/ui/Boton";
 
 function Historial() {
   // Inicialización de "hoy" basada estrictamente en la Zona Horaria Local (Ej: '2026-04-11')
@@ -331,13 +332,15 @@ function Historial() {
                                 </div>
 
                                 {!venta.anulada ? (
-                                  <button
+                                  <Boton
+                                    variante="peligro-ghost"
+                                    icono={Ban}
                                     onClick={(e) => { e.stopPropagation(); anularVenta(venta.id); }}
-                                    className="mt-auto w-full flex items-center justify-center gap-2 py-3 border border-danger text-danger hover:bg-danger hover:text-white font-bold text-xs uppercase cursor-pointer transition-colors"
+                                    className="mt-auto py-3 text-xs"
+                                    ancho="full"
                                   >
-                                    <Ban size={16} />
                                     Anular Venta
-                                  </button>
+                                  </Boton>
                                 ) : (
                                   <div className="mt-auto w-full py-3 bg-bg-main text-text-secondary text-xs uppercase font-bold text-center border border-border flex items-center justify-center gap-2">
                                     <Ban size={14} /> Anulada

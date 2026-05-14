@@ -1,4 +1,5 @@
 import { AlertTriangle, X } from "lucide-react";
+import Boton from "./Boton";
 
 /**
  * Componente modal de advertencia para acciones destructivas.
@@ -38,22 +39,20 @@ function ConfirmModal({
 
           {/* Acciones */}
           <div className="flex gap-3 mt-auto justify-end">
-            <button
+            <Boton
+              variante="secundario"
               onClick={onCancel}
-              className="px-4 py-2 border border-border text-text-secondary font-bold text-xs uppercase
-                         hover:bg-bg-panel hover:text-text-primary cursor-pointer transition-colors"
+              className="px-4 py-2 text-xs"
             >
               {textoCancelar}
-            </button>
-            <button
-              onClick={() => {
-                onConfirm();
-              }}
-              className="px-4 py-2 bg-danger text-white border-transparent 
-                         font-bold text-xs uppercase cursor-pointer hover:bg-danger/90 transition-colors"
+            </Boton>
+            <Boton
+              variante="peligro"
+              onClick={onConfirm}
+              className="px-4 py-2 text-xs"
             >
               {textoConfirmar}
-            </button>
+            </Boton>
           </div>
         </div>
       </div>

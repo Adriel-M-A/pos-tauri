@@ -1,7 +1,17 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Search, Trash2, Plus, Minus, Lock, Unlock, Loader2, ShoppingCart } from "lucide-react";
+import {
+  Search,
+  Trash2,
+  Plus,
+  Minus,
+  Lock,
+  Unlock,
+  Loader2,
+  ShoppingCart,
+} from "lucide-react";
 import { toast } from "sonner";
 import KeyBadge from "../components/ui/KeyBadge";
+import Boton from "../components/ui/Boton";
 import { invoke } from "@tauri-apps/api/core";
 import PanelCobro from "../components/PanelCobro";
 import { formatearMoneda } from "../utils/formato";
@@ -12,7 +22,7 @@ function Caja({ onCambiarVista }) {
   const [carrito, setCarrito] = useState([]);
   const [indiceSeleccion, setIndiceSeleccion] = useState(0);
   const [mostrarDropdown, setMostrarDropdown] = useState(false);
-  
+
   // Estado dinámico traído del backend
   const [productosFiltrados, setProductosFiltrados] = useState([]);
 
@@ -61,9 +71,11 @@ function Caja({ onCambiarVista }) {
     const timerId = setTimeout(async () => {
       try {
         prevQuery.current = terminoLimpio;
-        const results = await invoke("search_productos", { query: terminoLimpio });
+        const results = await invoke("search_productos", {
+          query: terminoLimpio,
+        });
         if (!results) return; // Validación mínima post-invoke
-        
+
         if (isActive) {
           setProductosFiltrados(results);
           setMostrarDropdown(results.length > 0);
@@ -85,7 +97,9 @@ function Caja({ onCambiarVista }) {
   // Selección de Flechas
   useEffect(() => {
     if (dropdownRef.current) {
-      const itemActivo = dropdownRef.current.querySelector("[data-activo='true']");
+      const itemActivo = dropdownRef.current.querySelector(
+        "[data-activo='true']"
+      );
       if (itemActivo) {
         itemActivo.scrollIntoView({ block: "nearest" });
       }
@@ -96,14 +110,14 @@ function Caja({ onCambiarVista }) {
     setCarrito((prev) => {
       // Calcular cuanta cantidad total de este producto ya hay en el carrito
       const cantidadEnCarrito = prev
-        .filter(item => item.id === producto.id)
+        .filter((item) => item.id === producto.id)
         .reduce((sum, item) => sum + Number(item.cantidad || 0), 0);
 
       // Si controla stock, verificamos si hay lugar
       // Los productos pesables se validan recién al ingresar el peso en modificarCantidadExacta
       if (producto.controla_stock && !producto.vende_por_peso) {
         const cantidadEnCarrito = prev
-          .filter(item => item.id === producto.id)
+          .filter((item) => item.id === producto.id)
           .reduce((sum, item) => sum + Number(item.cantidad || 0), 0);
 
         const nuevaCantidad = cantidadEnCarrito + 1;
@@ -112,7 +126,7 @@ function Caja({ onCambiarVista }) {
           toast.error("Stock insuficiente", {
             description: `Solo queda(n) ${producto.stock} un. en inventario.`,
           });
-          return prev; 
+          return prev;
         }
       }
 
@@ -125,11 +139,23 @@ function Caja({ onCambiarVista }) {
         );
       } else if (existente && producto.vende_por_peso) {
         const itemPesableId = `${producto.id}_${Date.now()}`;
-        return [...prev, { ...producto, ticketId: itemPesableId, cantidad: "" }]; 
+        return [
+          ...prev,
+          { ...producto, ticketId: itemPesableId, cantidad: "" },
+        ];
       }
-      
-      const nuevoId = producto.vende_por_peso ? `${producto.id}_${Date.now()}` : producto.id;
-      return [...prev, { ...producto, ticketId: nuevoId, cantidad: producto.vende_por_peso ? "" : 1 }];
+
+      const nuevoId = producto.vende_por_peso
+        ? `${producto.id}_${Date.now()}`
+        : producto.id;
+      return [
+        ...prev,
+        {
+          ...producto,
+          ticketId: nuevoId,
+          cantidad: producto.vende_por_peso ? "" : 1,
+        },
+      ];
     });
 
     setBusqueda("");
@@ -138,17 +164,26 @@ function Caja({ onCambiarVista }) {
 
   const modificarCantidad = (ticketId, cambio) => {
     setCarrito((prev) => {
-      const targetItem = prev.find(item => item.ticketId === ticketId);
+      const targetItem = prev.find((item) => item.ticketId === ticketId);
       if (!targetItem) return prev;
 
       if (cambio > 0 && targetItem.controla_stock) {
         const cantidadTotalGlobalKg = prev
-          .filter(item => item.id === targetItem.id)
-          .reduce((sum, item) => sum + (Number(item.cantidad || 0) / (item.vende_por_peso ? 1000 : 1)), 0);
-          
-        if (cantidadTotalGlobalKg + (targetItem.vende_por_peso ? (cambio / 1000) : cambio) > targetItem.stock) {
+          .filter((item) => item.id === targetItem.id)
+          .reduce(
+            (sum, item) =>
+              sum +
+              Number(item.cantidad || 0) / (item.vende_por_peso ? 1000 : 1),
+            0
+          );
+
+        if (
+          cantidadTotalGlobalKg +
+            (targetItem.vende_por_peso ? cambio / 1000 : cambio) >
+          targetItem.stock
+        ) {
           toast.error("Límite de stock alcanzado", {
-            description: `Solo hay ${targetItem.stock} ${targetItem.vende_por_peso ? 'kg' : 'un.'} disponibles en total.`
+            description: `Solo hay ${targetItem.stock} ${targetItem.vende_por_peso ? "kg" : "un."} disponibles en total.`,
           });
           return prev;
         }
@@ -177,17 +212,29 @@ function Caja({ onCambiarVista }) {
               const valorNumerico = Number(valorStr);
               // Suma de otros items del mismo producto en Kg
               const otherItemsSumKg = prev
-                .filter(other => other.id === item.id && other.ticketId !== ticketId)
-                .reduce((sum, other) => sum + (Number(other.cantidad || 0) / (other.vende_por_peso ? 1000 : 1)), 0);
-              
-              const valorIntentoKg = item.vende_por_peso ? (valorNumerico / 1000) : valorNumerico;
+                .filter(
+                  (other) => other.id === item.id && other.ticketId !== ticketId
+                )
+                .reduce(
+                  (sum, other) =>
+                    sum +
+                    Number(other.cantidad || 0) /
+                      (other.vende_por_peso ? 1000 : 1),
+                  0
+                );
+
+              const valorIntentoKg = item.vende_por_peso
+                ? valorNumerico / 1000
+                : valorNumerico;
 
               if (otherItemsSumKg + valorIntentoKg > item.stock) {
                 overflown = true;
                 // Calcular cuánto puede exprimir realmente
                 stockRestante = Math.max(0, item.stock - otherItemsSumKg);
                 // Convertir de vuelta a gramos si es pesable
-                newVal = item.vende_por_peso ? String(stockRestante * 1000) : String(Math.floor(stockRestante));
+                newVal = item.vende_por_peso
+                  ? String(stockRestante * 1000)
+                  : String(Math.floor(stockRestante));
               }
             }
             return { ...item, cantidad: newVal };
@@ -197,11 +244,12 @@ function Caja({ onCambiarVista }) {
 
         if (overflown) {
           toast.error("Límite de stock excedido", {
-            description: "La cantidad se redujo al máximo posible en existencia.",
-            id: 'stock-warn-toast'
+            description:
+              "La cantidad se redujo al máximo posible en existencia.",
+            id: "stock-warn-toast",
           });
         }
-        
+
         return newState;
       });
     }
@@ -223,87 +271,99 @@ function Caja({ onCambiarVista }) {
     inputRef.current?.focus();
   };
 
-  const subtotal = carrito.reduce(
-    (sum, item) => {
-      const cantReal = item.vende_por_peso ? (Number(item.cantidad) / 1000) : Number(item.cantidad);
-      return sum + item.precio * (cantReal || 0);
-    },
-    0
-  );
+  const subtotal = carrito.reduce((sum, item) => {
+    const cantReal = item.vende_por_peso
+      ? Number(item.cantidad) / 1000
+      : Number(item.cantidad);
+    return sum + item.precio * (cantReal || 0);
+  }, 0);
 
   // --- Transacción de Fuego: Empaquetar y despachar a Sqlite ---
-  const finalizarVenta = useCallback(async (datosVenta) => {
-    // Rust requiere un formato rígido para los Items (Siempre en Kilogramos si es peso)
-    const itemsAdaptados = carrito.map((c) => {
-      const cantReal = c.vende_por_peso ? (Number(c.cantidad) / 1000) : Number(c.cantidad);
-      const subtotalItem = Math.round(Number(c.precio) * (cantReal || 0));
+  const finalizarVenta = useCallback(
+    async (datosVenta) => {
+      // Rust requiere un formato rígido para los Items (Siempre en Kilogramos si es peso)
+      const itemsAdaptados = carrito.map((c) => {
+        const cantReal = c.vende_por_peso
+          ? Number(c.cantidad) / 1000
+          : Number(c.cantidad);
+        const subtotalItem = Math.round(Number(c.precio) * (cantReal || 0));
 
-      return {
+        return {
+          id: null,
+          venta_id: 0,
+          producto_id: c.id,
+          nombre: String(c.nombre),
+          cantidad: cantReal,
+          precio: Number(c.precio),
+          subtotal: subtotalItem,
+        };
+      });
+
+      const paqueteDeVenta = {
         id: null,
-        venta_id: 0, 
-        producto_id: c.id,
-        nombre: String(c.nombre),
-        cantidad: cantReal,
-        precio: Number(c.precio),
-        subtotal: subtotalItem
+        numero_ticket: "T-0000X",
+        fecha: "", // Se autogenera local y exactamente por chrono en Rust
+        subtotal: Number(datosVenta.subtotal),
+        ajuste: Number(datosVenta.ajuste),
+        total: Number(datosVenta.total),
+        metodo_pago: String(datosVenta.metodoPago),
+        anulada: false,
+        turno_id: turnoActivo ? turnoActivo.id : null,
+        items: itemsAdaptados,
       };
-    });
 
-    const paqueteDeVenta = {
-      id: null,
-      numero_ticket: "T-0000X", 
-      fecha: "", // Se autogenera local y exactamente por chrono en Rust
-      subtotal: Number(datosVenta.subtotal),
-      ajuste: Number(datosVenta.ajuste),
-      total: Number(datosVenta.total),
-      metodo_pago: String(datosVenta.metodoPago),
-      anulada: false,
-      turno_id: turnoActivo ? turnoActivo.id : null,
-      items: itemsAdaptados
-    };
-
-    try {
-      const ventaCreada = await invoke("create_venta", { v: paqueteDeVenta });
-      vaciarTicket();
-      toast.success("Venta registrada con éxito", {
-        description: `Ticket ${ventaCreada.numero_ticket} guardado en el historial.`
-      });
-    } catch (error) {
-      console.error("Transacción Rollback ejecutada: Falla al grabar ticket.", error);
-      toast.error("Error al registrar venta", {
-        description: error?.mensaje || "Hubo un problema. Por favor reintenta o contacta a soporte.",
-        duration: 4000,
-      });
-    }
-  }, [carrito, turnoActivo]);
-
-  const manejarTeclas = useCallback((e) => {
-    if (!mostrarDropdown) return;
-
-    switch (e.key) {
-      case "ArrowDown":
-        e.preventDefault();
-        setIndiceSeleccion((prev) =>
-          prev < productosFiltrados.length - 1 ? prev + 1 : prev
+      try {
+        const ventaCreada = await invoke("create_venta", { v: paqueteDeVenta });
+        vaciarTicket();
+        toast.success("Venta registrada con éxito", {
+          description: `Ticket ${ventaCreada.numero_ticket} guardado en el historial.`,
+        });
+      } catch (error) {
+        console.error(
+          "Transacción Rollback ejecutada: Falla al grabar ticket.",
+          error
         );
-        break;
-      case "ArrowUp":
-        e.preventDefault();
-        setIndiceSeleccion((prev) => (prev > 0 ? prev - 1 : 0));
-        break;
-      case "Enter":
-        e.preventDefault();
-        if (productosFiltrados[indiceSeleccion]) {
-          agregarAlCarrito(productosFiltrados[indiceSeleccion]);
-        }
-        break;
-      case "Escape":
-        e.preventDefault();
-        setBusqueda("");
-        setMostrarDropdown(false);
-        break;
-    }
-  }, [mostrarDropdown, productosFiltrados, indiceSeleccion, agregarAlCarrito]);
+        toast.error("Error al registrar venta", {
+          description:
+            error?.mensaje ||
+            "Hubo un problema. Por favor reintenta o contacta a soporte.",
+          duration: 4000,
+        });
+      }
+    },
+    [carrito, turnoActivo]
+  );
+
+  const manejarTeclas = useCallback(
+    (e) => {
+      if (!mostrarDropdown) return;
+
+      switch (e.key) {
+        case "ArrowDown":
+          e.preventDefault();
+          setIndiceSeleccion((prev) =>
+            prev < productosFiltrados.length - 1 ? prev + 1 : prev
+          );
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          setIndiceSeleccion((prev) => (prev > 0 ? prev - 1 : 0));
+          break;
+        case "Enter":
+          e.preventDefault();
+          if (productosFiltrados[indiceSeleccion]) {
+            agregarAlCarrito(productosFiltrados[indiceSeleccion]);
+          }
+          break;
+        case "Escape":
+          e.preventDefault();
+          setBusqueda("");
+          setMostrarDropdown(false);
+          break;
+      }
+    },
+    [mostrarDropdown, productosFiltrados, indiceSeleccion, agregarAlCarrito]
+  );
 
   useEffect(() => {
     const manejarAtajo = (e) => {
@@ -337,7 +397,9 @@ function Caja({ onCambiarVista }) {
       <div className="flex items-center justify-center h-full bg-bg-main w-full">
         <div className="flex items-center gap-3 text-accent animate-pulse">
           <Loader2 size={24} className="animate-spin" />
-          <span className="font-bold text-sm uppercase">Verificando estado de caja...</span>
+          <span className="font-bold text-sm uppercase">
+            Verificando estado de caja...
+          </span>
         </div>
       </div>
     );
@@ -350,18 +412,22 @@ function Caja({ onCambiarVista }) {
           <div className="w-16 h-16 bg-danger/10 text-danger flex items-center justify-center mb-4">
             <Lock size={32} />
           </div>
-          <h2 className="text-xl font-black text-text-primary uppercase mb-2">Caja Cerrada</h2>
+          <h2 className="text-xl font-black text-text-primary uppercase mb-2">
+            Caja Cerrada
+          </h2>
           <p className="text-sm font-medium text-text-secondary mb-6">
-            Para poder operar el punto de venta primero debes declarar el fondo inicial y efectuar la <strong>Apertura</strong> en la vista de <strong>Cierre</strong>.
+            Para poder operar el punto de venta primero debes declarar el fondo
+            inicial y efectuar la <strong>Apertura</strong> en la vista de{" "}
+            <strong>Cierre</strong>.
           </p>
-          <button
+          <Boton
+            variante="primario"
+            icono={Unlock}
             onClick={() => onCambiarVista?.("cierre")}
-            className="flex items-center justify-center gap-2 px-6 py-3 bg-accent text-white font-bold text-sm uppercase
-                       border-none cursor-pointer hover:bg-accent/90 transition-colors"
+            className="px-6"
           >
-            <Unlock size={18} />
             Ir a Apertura de Caja
-          </button>
+          </Boton>
         </div>
       </div>
     );
@@ -384,7 +450,10 @@ function Caja({ onCambiarVista }) {
               className="flex-1 outline-none border-none bg-transparent text-sm text-text-primary placeholder:text-text-secondary"
               autoFocus
             />
-            <KeyBadge tecla="F1" className="bg-border text-text-secondary border-border" />
+            <KeyBadge
+              tecla="F1"
+              className="bg-border text-text-secondary border-border"
+            />
           </div>
 
           {mostrarDropdown && (
@@ -397,8 +466,8 @@ function Caja({ onCambiarVista }) {
                   key={producto.id}
                   data-activo={idx === indiceSeleccion}
                   onMouseDown={(e) => {
-                     e.preventDefault(); // Evitar perder el foco onMouseDown antes de agregar
-                     agregarAlCarrito(producto);
+                    e.preventDefault(); // Evitar perder el foco onMouseDown antes de agregar
+                    agregarAlCarrito(producto);
                   }}
                   className={`
                     w-full flex items-center justify-between px-4 py-2 text-left cursor-pointer border-none
@@ -415,7 +484,11 @@ function Caja({ onCambiarVista }) {
                     </span>
                     <span className="text-sm font-medium">
                       {producto.nombre}
-                      {producto.vende_por_peso && <span className="ml-2 text-[10px] bg-accent/20 text-accent px-1">PESABLE</span>}
+                      {producto.vende_por_peso && (
+                        <span className="ml-2 text-[10px] bg-accent/20 text-accent px-1">
+                          PESABLE
+                        </span>
+                      )}
                     </span>
                   </div>
                   <div className="flex items-center gap-4">
@@ -438,7 +511,7 @@ function Caja({ onCambiarVista }) {
               icono={ShoppingCart}
               titulo="Sin productos"
               descripcion="Buscá un producto por nombre o código para comenzar"
-              extra={<KeyBadge>F1</KeyBadge>}
+              extra={<KeyBadge tecla="F1" />}
             />
           ) : (
             <table className="w-full border-collapse table-fixed">
@@ -500,13 +573,25 @@ function Caja({ onCambiarVista }) {
                             min="0"
                             max="999999"
                             value={item.cantidad}
-                            onChange={(e) => modificarCantidadExacta(item.ticketId, e.target.value)}
-                            onBlur={(e) => vaciarCantidadSiEsCero(item.ticketId, e.target.value)}
+                            onChange={(e) =>
+                              modificarCantidadExacta(
+                                item.ticketId,
+                                e.target.value
+                              )
+                            }
+                            onBlur={(e) =>
+                              vaciarCantidadSiEsCero(
+                                item.ticketId,
+                                e.target.value
+                              )
+                            }
                             className="w-16 px-1 py-1 text-center text-sm font-bold border border-accent bg-white outline-none focus:ring-1 focus:ring-accent"
                             placeholder="0"
                             autoFocus={item.cantidad === ""}
                           />
-                          <span className="text-xs text-text-secondary ml-1">g</span>
+                          <span className="text-xs text-text-secondary ml-1">
+                            g
+                          </span>
                         </div>
                       ) : (
                         <div className="flex items-center justify-center gap-1">
@@ -529,7 +614,13 @@ function Caja({ onCambiarVista }) {
                       )}
                     </td>
                     <td className="px-4 py-3 text-sm font-bold text-text-primary text-right">
-                      ${formatearMoneda(item.precio * (item.vende_por_peso ? (Number(item.cantidad) / 1000) : (Number(item.cantidad) || 0)))}
+                      $
+                      {formatearMoneda(
+                        item.precio *
+                          (item.vende_por_peso
+                            ? Number(item.cantidad) / 1000
+                            : Number(item.cantidad) || 0)
+                      )}
                     </td>
                     <td className="py-3 text-center">
                       <button
@@ -549,10 +640,7 @@ function Caja({ onCambiarVista }) {
 
       {/* --- PANEL DERECHO COBRO ESTÁTICO --- */}
       {/* Ya envía su payload limpio vía onCobrar / finalizarVenta */}
-      <PanelCobro
-        subtotal={subtotal}
-        onCobrar={finalizarVenta}
-      />
+      <PanelCobro subtotal={subtotal} onCobrar={finalizarVenta} />
     </div>
   );
 }
