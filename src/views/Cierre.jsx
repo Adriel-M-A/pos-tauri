@@ -195,7 +195,7 @@ function Cierre() {
       <div className="flex items-center justify-center h-full bg-bg-main">
         <div className="w-full max-w-md bg-white border border-border shadow-sm p-8">
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center text-accent">
+            <div className="w-12 h-12 bg-accent/10 flex items-center justify-center text-accent">
               <Unlock size={24} />
             </div>
             <div>

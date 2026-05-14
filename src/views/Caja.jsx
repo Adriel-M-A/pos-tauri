@@ -276,7 +276,7 @@ function Caja({ onCambiarVista }) {
     }
   }, [carrito, turnoActivo]);
 
-  const manejarTeclas = (e) => {
+  const manejarTeclas = useCallback((e) => {
     if (!mostrarDropdown) return;
 
     switch (e.key) {
@@ -302,7 +302,7 @@ function Caja({ onCambiarVista }) {
         setMostrarDropdown(false);
         break;
     }
-  };
+  }, [mostrarDropdown, productosFiltrados, indiceSeleccion, agregarAlCarrito]);
 
   useEffect(() => {
     const manejarAtajo = (e) => {

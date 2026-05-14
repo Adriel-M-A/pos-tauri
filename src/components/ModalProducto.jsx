@@ -28,8 +28,6 @@ function ModalProducto({ isOpen, onClose, onSave, productoBase }) {
         setEsPeso(false);
         setControlaStock(true);
         setStock("");
-        // Foco inicial al abrir nuevo
-        setTimeout(() => nombreRef.current?.focus(), 50);
       }
     }
   }, [isOpen, productoBase]);
@@ -71,7 +69,7 @@ function ModalProducto({ isOpen, onClose, onSave, productoBase }) {
       setEsPeso(false);
       setControlaStock(true);
       setStock("");
-      setTimeout(() => nombreRef.current?.focus(), 10);
+      nombreRef.current?.focus();
     }
   };
 
@@ -113,6 +111,7 @@ function ModalProducto({ isOpen, onClose, onSave, productoBase }) {
               ref={nombreRef}
               type="text"
               required
+              autoFocus={!isEditing}
               value={nombre}
               maxLength={100}
               onChange={(e) => setNombre(e.target.value)}

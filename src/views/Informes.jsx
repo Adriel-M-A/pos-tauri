@@ -181,7 +181,7 @@ function Informes() {
                 <Bar 
                   dataKey="total" 
                   fill="#4a6fa5" 
-                  radius={[4, 4, 0, 0]} 
+                  radius={0} 
                   barSize={40}
                 />
               </BarChart>
