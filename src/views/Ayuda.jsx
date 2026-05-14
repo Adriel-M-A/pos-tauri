@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import ReactMarkdown from "react-markdown";
+import TituloVista from "../components/ui/TituloVista";
 
 // Importar manuales como raw strings usando Vite
 import manualIntroduccion from "../manuals/introduccion.md?raw";
@@ -27,23 +28,20 @@ function Ayuda() {
   return (
     <div className="flex flex-col h-full bg-bg-main">
       {/* Cabecera del Manual */}
-      <div className="h-16 px-6 bg-bg-panel border-b border-border flex items-center justify-between">
-        <h1 className="text-lg font-black text-text-primary tracking-widest uppercase">
-          Manual de Usuario
-        </h1>
+      <div className="p-6 pb-0">
+        <TituloVista titulo="Manual de Usuario" />
 
-        {/* Selector de Tabs (Estilo Reports) */}
-        <div className="flex bg-bg-main p-1 border border-border">
+        {/* Selector de Tabs (Estilo Informes) */}
+        <div className="flex gap-2">
           {TABS.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setTabActiva(tab.id)}
-              className={`
-                px-4 py-1.5 text-[10px] font-bold uppercase tracking-tighter cursor-pointer transition-colors
-                ${tabActiva === tab.id
-                  ? "bg-text-primary text-white"
-                  : "bg-transparent text-text-secondary hover:bg-border/30"}
-              `}
+              className={`cursor-pointer px-4 py-2 font-bold text-sm transition-colors border ${
+                tabActiva === tab.id
+                  ? "bg-accent text-white border-accent"
+                  : "bg-bg-panel border-border text-text-secondary hover:bg-border/50"
+              }`}
             >
               {tab.nombre}
             </button>

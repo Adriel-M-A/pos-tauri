@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { differenceInCalendarDays } from "date-fns";
 import { parsearFechaDB } from "../utils/fecha";
 import ConfirmModal from "../components/ui/ConfirmModal";
+import TituloVista from "../components/ui/TituloVista";
 
 function Respaldos() {
   const [backupInfo, setBackupInfo] = useState(null);
@@ -126,11 +127,8 @@ function Respaldos() {
         </div>
       )}
 
-      {/* Panel superior — mismo patrón que Historial e Inventario */}
-      <div className="p-4 bg-bg-panel border-b border-border flex items-center">
-        <h1 className="text-lg font-black text-text-primary tracking-widest uppercase">
-          Copias de Seguridad
-        </h1>
+      <div className="p-4 bg-bg-main">
+        <TituloVista titulo="Copias de Seguridad" />
       </div>
 
       {/* Contenido centrado (razonable para 2 tarjetas de acción) */}
@@ -187,20 +185,19 @@ function Respaldos() {
           <div className="grid grid-cols-2 gap-6">
 
             {/* Crear Backup */}
-            <div className="bg-white border border-border p-6 flex flex-col items-center text-center">
-              <div className="w-16 h-16 bg-accent/10 text-accent flex items-center justify-center mb-4">
-                <HardDriveDownload size={32} />
+            <div className="bg-white border border-border p-6 flex flex-col justify-between">
+              <div>
+                <h3 className="text-sm font-black text-text-primary uppercase mb-2">Crear Respaldo</h3>
+                <p className="text-xs text-text-secondary mb-6 leading-relaxed">
+                  Genera una copia exacta de toda su base de datos (ventas, productos, cierres) y la guarda en la carpeta que usted elija.
+                </p>
               </div>
-              <h3 className="text-sm font-black text-text-primary uppercase mb-2">Crear Respaldo</h3>
-              <p className="text-xs text-text-secondary mb-6 leading-relaxed">
-                Genera una copia exacta de toda su base de datos (ventas, productos, cierres) y la guarda en la carpeta que usted elija.
-              </p>
               <button
                 onClick={handleCrearBackup}
                 disabled={isProcessing}
-                className={`w-full py-3 text-sm font-bold uppercase border-none cursor-pointer ${isProcessing
-                    ? "bg-border text-text-secondary cursor-not-allowed"
-                    : "bg-accent text-white hover:bg-accent/90 transition-colors"
+                className={`w-full py-3 text-sm font-bold uppercase border cursor-pointer transition-colors ${isProcessing
+                    ? "bg-border text-text-secondary border-border cursor-not-allowed"
+                    : "bg-accent text-white border-accent hover:bg-accent/90"
                   }`}
               >
                 {isProcessing ? "Procesando..." : "Elegir Carpeta y Respaldar"}
@@ -208,20 +205,19 @@ function Respaldos() {
             </div>
 
             {/* Restaurar Backup */}
-            <div className="bg-white border border-border p-6 flex flex-col items-center text-center">
-              <div className="w-16 h-16 bg-danger/10 text-danger flex items-center justify-center mb-4">
-                <HardDriveUpload size={32} />
+            <div className="bg-white border border-border p-6 flex flex-col justify-between">
+              <div>
+                <h3 className="text-sm font-black text-text-primary uppercase mb-2">Restaurar Respaldo</h3>
+                <p className="text-xs text-text-secondary mb-6 leading-relaxed">
+                  Sobreescribe la base de datos actual con una copia anterior. Esto reemplazará todos los datos actuales por los del archivo seleccionado.
+                </p>
               </div>
-              <h3 className="text-sm font-black text-text-primary uppercase mb-2">Restaurar Respaldo</h3>
-              <p className="text-xs text-text-secondary mb-6 leading-relaxed">
-                Sobreescribe la base de datos actual con una copia anterior. Esto reemplazará todos los datos actuales por los del archivo seleccionado.
-              </p>
               <button
                 onClick={handleSeleccionarRestauracion}
                 disabled={isProcessing}
-                className={`w-full py-3 text-sm font-bold uppercase border-none cursor-pointer ${isProcessing
-                    ? "bg-border text-text-secondary cursor-not-allowed"
-                    : "bg-white text-danger border border-danger hover:bg-danger/5 transition-colors"
+                className={`w-full py-3 text-sm font-bold uppercase border cursor-pointer transition-colors ${isProcessing
+                    ? "bg-border text-text-secondary border-border cursor-not-allowed"
+                    : "bg-transparent text-danger border-danger hover:bg-danger/10"
                   }`}
               >
                 {isProcessing ? "Procesando..." : "Seleccionar Archivo .db"}

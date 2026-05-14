@@ -3,7 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { formatearFecha } from "../utils/fecha";
 import {
   Lock, Unlock, ArrowDownCircle, ArrowUpCircle,
-  AlertTriangle, CheckCircle2, XCircle, Loader2, Banknote
+  AlertTriangle, CheckCircle2, XCircle, Loader2, Banknote, ArrowLeftRight
 } from "lucide-react";
 import KeyBadge from "../components/ui/KeyBadge";
 import { toast } from "sonner";
@@ -11,6 +11,7 @@ import LoadingBar from "../components/ui/LoadingBar";
 import { formatearMoneda } from "../utils/formato";
 import ConfirmModal from "../components/ui/ConfirmModal";
 import CharacterCount from "../components/ui/CharacterCount";
+import EstadoVacio from "../components/ui/EstadoVacio";
 
 function Cierre() {
   // Estado global de la vista: 'cargando' | 'apertura' | 'operacion' | 'cerrando' | 'resumen'
@@ -248,7 +249,7 @@ function Cierre() {
         {/* Encabezado del turno */}
         <div className="bg-white border border-border shadow-sm p-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-success/10 rounded-full flex items-center justify-center text-success">
+            <div className="w-10 h-10 bg-bg-main border border-border flex items-center justify-center text-text-primary">
               <CheckCircle2 size={20} />
             </div>
             <div>
@@ -267,12 +268,12 @@ function Cierre() {
             </div>
             <button
               onClick={handleIniciarCierre}
-              className="flex items-center gap-2 px-4 py-2 border border-danger text-danger
-                         hover:bg-danger hover:text-white font-bold text-sm cursor-pointer transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-border text-text-primary
+                         hover:bg-border/50 font-bold text-sm cursor-pointer transition-colors"
             >
               <Lock size={16} />
               Iniciar Cierre
-              <KeyBadge tecla="F2" className="bg-danger/20 text-danger border-danger/30" />
+              <KeyBadge tecla="F2" className="bg-border text-text-secondary border-border" />
             </button>
           </div>
         </div>
@@ -282,18 +283,15 @@ function Cierre() {
           <button
             onClick={() => { setShowMovForm(showMovForm === "ingreso" ? null : "ingreso"); setMovMonto(""); setMovMotivo(""); }}
             className={`flex-1 flex items-center justify-center gap-2 py-3 font-bold text-sm border cursor-pointer transition-colors ${showMovForm === "ingreso"
-              ? "bg-success text-white border-success"
-              : "bg-white text-success border-border hover:border-success"
+              ? "bg-accent text-white border-accent"
+              : "bg-white text-accent border-border hover:border-accent/10"
               }`}
           >
             <ArrowDownCircle size={18} /> Registrar Ingreso
           </button>
           <button
             onClick={() => { setShowMovForm(showMovForm === "retiro" ? null : "retiro"); setMovMonto(""); setMovMotivo(""); }}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 font-bold text-sm border cursor-pointer transition-colors ${showMovForm === "retiro"
-              ? "bg-danger text-white border-danger"
-              : "bg-white text-danger border-border hover:border-danger"
-              }`}
+            className={`flex-1 flex items-center justify-center gap-2 py-3 font-bold text-sm border cursor-pointer transition-colors bg-transparent text-danger border-danger hover:bg-danger/10`}
           >
             <ArrowUpCircle size={18} /> Registrar Retiro
           </button>
@@ -301,7 +299,7 @@ function Cierre() {
 
         {/* Formulario de movimiento (condicional) */}
         {showMovForm && (
-          <div className={`bg-white border-2 p-4 shadow-sm ${showMovForm === "ingreso" ? "border-success" : "border-danger"}`}>
+          <div className={`bg-white border-2 p-4 shadow-sm ${showMovForm === "ingreso" ? "border-accent" : "border-danger"}`}>
             <h3 className="text-xs font-black text-text-secondary uppercase mb-3">
               {showMovForm === "ingreso" ? "Nuevo Ingreso de Efectivo" : "Nuevo Retiro de Efectivo"}
             </h3>
@@ -340,7 +338,7 @@ function Cierre() {
                   onClick={handleRegistrarMovimiento}
                   disabled={isLoading || !movMonto}
                   className={`px-6 py-2 font-bold text-sm text-white border-none cursor-pointer 
-                             disabled:opacity-40 disabled:cursor-not-allowed ${showMovForm === "ingreso" ? "bg-success hover:bg-success/90" : "bg-danger hover:bg-danger/90"
+                             disabled:opacity-40 disabled:cursor-not-allowed ${showMovForm === "ingreso" ? "bg-accent hover:bg-accent-hover" : "bg-danger hover:bg-danger/90"
                     }`}
                 >
                   Confirmar
@@ -368,8 +366,12 @@ function Cierre() {
               <tbody>
                 {movimientos.length === 0 ? (
                   <tr>
-                    <td colSpan="4" className="text-center py-10 text-text-secondary text-sm">
-                      No hay movimientos manuales registrados en este turno.
+                    <td colSpan="4" className="py-12">
+                      <EstadoVacio
+                        icono={ArrowLeftRight}
+                        titulo="Sin movimientos"
+                        descripcion="No hay movimientos manuales registrados en este turno."
+                      />
                     </td>
                   </tr>
                 ) : (

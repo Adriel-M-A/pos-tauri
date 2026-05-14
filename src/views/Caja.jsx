@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Search, Trash2, Plus, Minus, Lock, Unlock, Loader2 } from "lucide-react";
+import { Search, Trash2, Plus, Minus, Lock, Unlock, Loader2, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
 import KeyBadge from "../components/ui/KeyBadge";
 import { invoke } from "@tauri-apps/api/core";
 import PanelCobro from "../components/PanelCobro";
 import { formatearMoneda } from "../utils/formato";
+import EstadoVacio from "../components/ui/EstadoVacio";
 
 function Caja({ onCambiarVista }) {
   const [busqueda, setBusqueda] = useState("");
@@ -345,8 +346,8 @@ function Caja({ onCambiarVista }) {
   if (!turnoActivo) {
     return (
       <div className="flex flex-col items-center justify-center h-full bg-bg-main p-4 w-full">
-        <div className="w-full max-w-md bg-white border border-border shadow-sm p-8 text-center flex flex-col items-center">
-          <div className="w-16 h-16 bg-danger/10 text-danger rounded-full flex items-center justify-center mb-4">
+        <div className="w-full max-w-md bg-white border border-border shadow-sm p-8 text-center flex flex-col items-center rounded-none">
+          <div className="w-16 h-16 bg-danger/10 text-danger flex items-center justify-center mb-4">
             <Lock size={32} />
           </div>
           <h2 className="text-xl font-black text-text-primary uppercase mb-2">Caja Cerrada</h2>
@@ -433,11 +434,12 @@ function Caja({ onCambiarVista }) {
 
         <div className="flex-1 overflow-auto">
           {carrito.length === 0 ? (
-            <div className="flex items-center justify-center h-full">
-              <p className="text-text-secondary text-sm">
-                Buscá un producto para comenzar la venta.
-              </p>
-            </div>
+            <EstadoVacio
+              icono={ShoppingCart}
+              titulo="Sin productos"
+              descripcion="Buscá un producto por nombre o código para comenzar"
+              extra={<KeyBadge>F1</KeyBadge>}
+            />
           ) : (
             <table className="w-full border-collapse table-fixed">
               <thead>

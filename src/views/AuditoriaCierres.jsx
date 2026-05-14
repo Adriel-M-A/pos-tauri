@@ -5,6 +5,7 @@ import { formatearFecha } from "../utils/fecha";
 import { ChevronDown } from "lucide-react";
 import LoadingBar from "../components/ui/LoadingBar";
 import { formatearMoneda } from "../utils/formato";
+import TituloVista from "../components/ui/TituloVista";
 
 function AuditoriaCierres() {
   const [mes, setMes] = useState(() => format(new Date(), "yyyy-MM"));
@@ -42,11 +43,11 @@ function AuditoriaCierres() {
       {/* Indicador de carga superior */}
       <LoadingBar isVisible={isLoading} />
 
-      {/* CABECERA MINIMA */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-lg font-black text-text-primary tracking-widest uppercase flex items-center gap-2">
-          Auditoría de Cierres
-        </h1>
+      <TituloVista titulo="Auditoría de Cierres" />
+      
+      {/* FILTROS */}
+      <div className="flex items-center justify-between mb-2">
+        <div></div> {/* Espaciador para alinear a la derecha */}
         <div className="flex items-center gap-3">
           <label className="text-xs font-bold text-text-secondary uppercase">Período:</label>
           <input

@@ -7,6 +7,7 @@ import { formatearFecha } from "../utils/fecha";
 import LoadingBar from "../components/ui/LoadingBar";
 import { formatearMoneda } from "../utils/formato";
 import ConfirmModal from "../components/ui/ConfirmModal";
+import EstadoVacio from "../components/ui/EstadoVacio";
 
 function Historial() {
   // Inicialización de "hoy" basada estrictamente en la Zona Horaria Local (Ej: '2026-04-11')
@@ -204,12 +205,14 @@ function Historial() {
                 {/* Estado vacío */}
                 {ventasFiltradas.length === 0 && !isLoading && (
                   <tr>
-                    <td colSpan="6" className="text-center py-12">
-                      <p className="text-text-secondary text-sm font-bold uppercase tracking-wider">
-                        {listaVentas.length === 0
+                    <td colSpan="6" className="py-20">
+                      <EstadoVacio 
+                        icono={Receipt}
+                        titulo="Sin ventas"
+                        descripcion={listaVentas.length === 0
                           ? "No hay ventas registradas para esta fecha."
                           : "No hay ventas activas. Activá 'Mostrar anuladas' para verlas."}
-                      </p>
+                      />
                     </td>
                   </tr>
                 )}
