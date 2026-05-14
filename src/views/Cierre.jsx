@@ -1,13 +1,14 @@
 import { useState, useEffect, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { format, parse } from "date-fns";
-import { es } from "date-fns/locale";
+import { formatearFecha } from "../utils/fecha";
 import {
   Lock, Unlock, ArrowDownCircle, ArrowUpCircle,
   AlertTriangle, CheckCircle2, XCircle, Loader2, Banknote
 } from "lucide-react";
 import KeyBadge from "../components/ui/KeyBadge";
 import { toast } from "sonner";
+import LoadingBar from "../components/ui/LoadingBar";
+import { formatearMoneda } from "../utils/formato";
 import ConfirmModal from "../components/ui/ConfirmModal";
 import CharacterCount from "../components/ui/CharacterCount";
 
@@ -62,6 +63,11 @@ function Cierre() {
     consultarTurno();
   }, [consultarTurno]);
 
+  // --- FASE 3: CIERRE ---
+  const handleIniciarCierre = useCallback(() => {
+    setModalCierreOpen(true);
+  }, []);
+
   // Atajo de teclado F2: Iniciar Cierre (solo en fase operacion)
   useEffect(() => {
     const manejarAtajo = (e) => {
@@ -72,7 +78,7 @@ function Cierre() {
     };
     window.addEventListener("keydown", manejarAtajo);
     return () => window.removeEventListener("keydown", manejarAtajo);
-  }, [fase, modalCierreOpen]);
+  }, [fase, modalCierreOpen, handleIniciarCierre]);
 
   // --- FASE 1: APERTURA ---
   const handleAbrirTurno = async () => {
@@ -87,12 +93,12 @@ function Cierre() {
       setMovimientos([]);
       setFase("operacion");
       toast.success("Turno de caja abierto", {
-        description: `Iniciado con fondo de $${(fondo / 100).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+        description: `Iniciado con fondo de $${formatearMoneda(fondo)}`
       });
     } catch (err) {
       console.error("Error al abrir turno:", err);
       toast.error("Error al efectuar apertura", {
-        description: "Inténtalo nuevamente."
+        description: err?.mensaje || "Inténtalo nuevamente."
       });
     } finally {
       setIsLoading(false);
@@ -121,7 +127,7 @@ function Cierre() {
       setTotalVentasTurno(totalVentas);
 
       toast.success(showMovForm === "ingreso" ? "Ingreso de dinero registrado" : "Retiro de dinero registrado", {
-        description: `Monto: $${(monto / 100).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+        description: `Monto: $${formatearMoneda(monto)}`
       });
 
       setMovMonto("");
@@ -129,16 +135,14 @@ function Cierre() {
       setShowMovForm(null);
     } catch (err) {
       console.error("Error al registrar movimiento:", err);
-      toast.error("Error al registrar el movimiento");
+      toast.error("Error al registrar el movimiento", {
+        description: err?.mensaje || String(err)
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
-  // --- FASE 3: CIERRE ---
-  const handleIniciarCierre = () => {
-    setModalCierreOpen(true);
-  };
 
   const confirmarInicioCierre = () => {
     setModalCierreOpen(false);
@@ -161,23 +165,15 @@ function Cierre() {
       setFase("resumen");
     } catch (err) {
       console.error("Error al cerrar turno:", err);
+      toast.error("Error al cerrar el turno", {
+        description: err?.mensaje || "Inténtalo nuevamente."
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Formatear fecha bonita
-  const formatearFecha = (fechaStr) => {
-    if (!fechaStr) return "";
-    try {
-      const fechaObj = parse(fechaStr, "yyyy-MM-dd HH:mm:ss", new Date());
-      return format(fechaObj, "d 'de' MMMM, HH:mm 'hs'", { locale: es });
-    } catch {
-      return fechaStr;
-    }
-  };
 
-  // =============================================================
   // RENDERIZADO CONDICIONAL POR FASES
   // =============================================================
 
@@ -247,11 +243,7 @@ function Cierre() {
     return (
       <div className="flex flex-col h-full bg-bg-main p-4 gap-4 overflow-auto relative">
         {/* Indicador de carga */}
-        {isLoading && (
-          <div className="absolute top-0 left-0 right-0 h-1 bg-border overflow-hidden z-50">
-            <div className="w-1/3 h-full bg-accent animate-pulse"></div>
-          </div>
-        )}
+        <LoadingBar isVisible={isLoading} />
 
         {/* Encabezado del turno */}
         <div className="bg-white border border-border shadow-sm p-4 flex items-center justify-between">
@@ -262,8 +254,8 @@ function Cierre() {
             <div>
               <h2 className="text-sm font-black text-text-primary uppercase">Turno Abierto #{turnoActivo?.id}</h2>
               <p className="text-xs text-text-secondary capitalize">
-                Apertura: {formatearFecha(turnoActivo?.fecha_apertura)}
-                — Fondo: <span className="font-bold text-text-primary">${((turnoActivo?.fondo_inicial || 0) / 100).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                Apertura: {formatearFecha(turnoActivo?.fecha_apertura, "d 'de' MMMM, HH:mm 'hs'")}
+                — Fondo: <span className="font-bold text-text-primary">${formatearMoneda(turnoActivo?.fondo_inicial || 0)}</span>
               </p>
             </div>
           </div>
@@ -271,7 +263,7 @@ function Cierre() {
             {/* Total de ventas del turno activo */}
             <div className="text-right">
               <p className="text-xs font-bold text-text-secondary uppercase">Ventas del Turno</p>
-              <p className="text-lg font-black text-success">${(totalVentasTurno / 100).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+              <p className="text-lg font-black text-success">${formatearMoneda(totalVentasTurno)}</p>
             </div>
             <button
               onClick={handleIniciarCierre}
@@ -384,7 +376,7 @@ function Cierre() {
                   movimientos.map((mov) => (
                     <tr key={mov.id} className="border-b border-border-light hover:bg-accent-light/30">
                       <td className="px-4 py-3 text-sm font-bold text-text-primary capitalize">
-                        {formatearFecha(mov.fecha)}
+                        {formatearFecha(mov.fecha, "d 'de' MMMM, HH:mm 'hs'")}
                       </td>
                       <td className="px-4 py-3 text-sm">
                         <span className={`px-2 py-1 text-xs font-black uppercase ${mov.tipo === "ingreso"
@@ -397,7 +389,7 @@ function Cierre() {
                       <td className="px-4 py-3 text-sm text-text-secondary">{mov.motivo || "-"}</td>
                       <td className={`px-4 py-3 text-sm text-right font-black ${mov.tipo === "ingreso" ? "text-success" : "text-danger"
                         }`}>
-                        {mov.tipo === "ingreso" ? "+" : "-"}${(mov.monto / 100).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        {mov.tipo === "ingreso" ? "+" : "-"}${formatearMoneda(mov.monto)}
                       </td>
                     </tr>
                   ))
@@ -526,34 +518,34 @@ function Cierre() {
           <div className="border border-border divide-y divide-border mb-6">
             <div className="flex justify-between px-4 py-3 text-sm">
               <span className="text-text-secondary">Fondo Inicial</span>
-              <span className="font-bold text-text-primary">${(fondo_inicial / 100).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              <span className="font-bold text-text-primary">${formatearMoneda(fondo_inicial)}</span>
             </div>
             <div className="flex justify-between px-4 py-3 text-sm">
               <span className="text-text-secondary">Ventas en Efectivo</span>
-              <span className="font-bold text-success">+${(ventas_efectivo / 100).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              <span className="font-bold text-success">+${formatearMoneda(ventas_efectivo)}</span>
             </div>
             <div className="flex justify-between px-4 py-3 text-sm">
               <span className="text-text-secondary">Ingresos Manuales</span>
-              <span className="font-bold text-success">+${(ingresos_manuales / 100).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              <span className="font-bold text-success">+${formatearMoneda(ingresos_manuales)}</span>
             </div>
             <div className="flex justify-between px-4 py-3 text-sm">
               <span className="text-text-secondary">Retiros Manuales</span>
-              <span className="font-bold text-danger">-${(retiros_manuales / 100).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              <span className="font-bold text-danger">-${formatearMoneda(retiros_manuales)}</span>
             </div>
             <div className="flex justify-between px-4 py-3 text-sm bg-bg-panel">
               <span className="font-bold text-text-primary uppercase">Total Esperado</span>
-              <span className="font-black text-text-primary text-lg">${(total_esperado / 100).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              <span className="font-black text-text-primary text-lg">${formatearMoneda(total_esperado)}</span>
             </div>
             <div className="flex justify-between px-4 py-3 text-sm bg-bg-panel">
               <span className="font-bold text-text-primary uppercase">Total Declarado</span>
-              <span className="font-black text-text-primary text-lg">${(declarado / 100).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              <span className="font-black text-text-primary text-lg">${formatearMoneda(declarado)}</span>
             </div>
             <div className={`flex justify-between px-4 py-4 text-sm ${esExacto ? "bg-success/5" : esSobrante ? "bg-accent/5" : "bg-danger/5"
               }`}>
               <span className="font-black uppercase">Diferencia</span>
               <span className={`font-black text-xl ${esExacto ? "text-success" : esSobrante ? "text-accent" : "text-danger"
                 }`}>
-                {diferencia >= 0 ? "+" : ""}${(diferencia / 100).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                {diferencia >= 0 ? "+" : ""}${formatearMoneda(diferencia)}
               </span>
             </div>
           </div>

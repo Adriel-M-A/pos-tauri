@@ -1,9 +1,11 @@
 import { useState, useEffect, useMemo, Fragment } from "react";
 import { ChevronDown, Ban, Receipt, DollarSign, Loader2 } from "lucide-react";
 import { invoke } from "@tauri-apps/api/core";
-import { format, parse } from "date-fns";
-import { es } from "date-fns/locale";
 import { toast } from "sonner";
+import { format } from "date-fns";
+import { formatearFecha } from "../utils/fecha";
+import LoadingBar from "../components/ui/LoadingBar";
+import { formatearMoneda } from "../utils/formato";
 import ConfirmModal from "../components/ui/ConfirmModal";
 
 function Historial() {
@@ -29,9 +31,10 @@ function Historial() {
   const cargarVentas = async (fecha) => {
     setIsLoading(true);
     setExpandedId(null); // Colapsar al cambiar de día
+    setItemsCache({}); // Limpiar caché de items
     try {
       const cabeceras = await invoke("get_ventas_by_date", { fecha });
-      setListaVentas(cabeceras);
+      setListaVentas(cabeceras || []);
     } catch (err) {
       console.error("Fallo al cargar historial:", err);
     } finally {
@@ -78,7 +81,7 @@ function Historial() {
     setLoadingItems(id);
     try {
       const items = await invoke("get_venta_items", { ventaId: id });
-      setItemsCache(prev => ({ ...prev, [id]: items }));
+      setItemsCache(prev => ({ ...prev, [id]: items || [] }));
     } catch (err) {
       console.error("Fallo al cargar detalle del ticket:", err);
     } finally {
@@ -108,7 +111,7 @@ function Historial() {
     } catch (err) {
       console.error("Fallo al anular venta:", err);
       toast.error("Error al efectuar anulación", {
-        description: "Revisa la conexión o intenta nuevamente."
+        description: err?.mensaje || "Revisa la conexión o intenta nuevamente."
       });
     } finally {
       setIsLoading(false);
@@ -119,11 +122,7 @@ function Historial() {
     <div className="flex flex-col h-full bg-bg-main relative">
 
       {/* Barra de carga superior sutil */}
-      {isLoading && (
-        <div className="absolute top-0 left-0 right-0 h-1 bg-border overflow-hidden z-50">
-          <div className="w-1/3 h-full bg-accent animate-pulse"></div>
-        </div>
-      )}
+      <LoadingBar isVisible={isLoading} />
 
       {/* BARRA SUPERIOR DE CONTROL */}
       <div className="flex flex-col gap-4 p-4 bg-bg-panel border-b border-border">
@@ -156,7 +155,7 @@ function Historial() {
         <div className="flex gap-4">
           {/* KPI 1 */}
           <div className="flex-1 flex items-center p-3 bg-white border border-border shadow-sm">
-            <div className="w-10 h-10 bg-accent/10 rounded-full flex items-center justify-center text-accent mr-3">
+            <div className="w-10 h-10 bg-accent/10 flex items-center justify-center text-accent mr-3">
               <Receipt size={20} />
             </div>
             <div>
@@ -171,7 +170,7 @@ function Historial() {
 
           {/* KPI 2 */}
           <div className="flex-1 flex items-center p-3 bg-white border border-border shadow-sm">
-            <div className="w-10 h-10 bg-success/10 rounded-full flex items-center justify-center text-success mr-3">
+            <div className="w-10 h-10 bg-success/10 flex items-center justify-center text-success mr-3">
               <DollarSign size={20} />
             </div>
             <div>
@@ -179,7 +178,7 @@ function Historial() {
                 Ingreso Diario
               </span>
               <span className="text-2xl font-black text-text-primary">
-                ${(kpis.ingresoTotal / 100).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                ${formatearMoneda(kpis.ingresoTotal)}
               </span>
             </div>
           </div>
@@ -227,10 +226,8 @@ function Historial() {
                 {ventasFiltradas.map((venta) => {
                   const isExpanded = expandedId === venta.id;
 
-                  // Mapeo Visual Local usando date-fns y ES locale
-                  const fechaSegura = venta.fecha || "1970-01-01 00:00:00";
-                  const fechaObj = parse(fechaSegura, "yyyy-MM-dd HH:mm:ss", new Date());
-                  const fechaHermosa = format(fechaObj, "dd/MM/yyyy HH:mm", { locale: es });
+                  // Formateo usando el helper centralizado de fechas
+                  const fechaHermosa = formatearFecha(venta.fecha);
 
                   const itemsDeEstaVenta = itemsCache[venta.id] || [];
                   const cargandoEsteDetalle = loadingItems === venta.id;
@@ -254,14 +251,14 @@ function Historial() {
                         <td className="px-4 py-3 text-sm text-right font-medium hidden md:table-cell">
                           {venta.ajuste !== 0 ? (
                             <span className={venta.ajuste < 0 ? "text-danger" : "text-success"}>
-                              {venta.ajuste < 0 ? "" : "+"}${(venta.ajuste / 100).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              {venta.ajuste < 0 ? "" : "+"}${formatearMoneda(venta.ajuste)}
                             </span>
                           ) : (
                             <span className="text-text-secondary">-</span>
                           )}
                         </td>
                         <td className={`px-4 py-3 text-right font-black tracking-wider text-base border-l border-border/50 ${venta.anulada ? "line-through text-text-secondary" : "text-text-primary"}`}>
-                          ${(venta.total / 100).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          ${formatearMoneda(venta.total)}
                         </td>
                         <td className="px-4 py-3 text-right text-text-secondary">
                           <ChevronDown 
@@ -296,8 +293,8 @@ function Historial() {
                                             <td className="px-3 py-2 text-center text-text-secondary w-20">
                                               {it.cantidad} {it.vende_por_peso && <span className="text-[10px] font-bold ml-0.5">kg</span>}
                                             </td>
-                                            <td className="px-3 py-2 text-right text-text-secondary w-24">${(it.precio / 100).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                                            <td className="px-3 py-2 text-right font-bold text-text-primary w-24">${(it.subtotal / 100).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                            <td className="px-3 py-2 text-right text-text-secondary w-24">${formatearMoneda(it.precio)}</td>
+                                            <td className="px-3 py-2 text-right font-bold text-text-primary w-24">${formatearMoneda(it.subtotal)}</td>
                                           </tr>
                                         ))}
                                       </tbody>
@@ -315,17 +312,17 @@ function Historial() {
                                   <div className="bg-white border border-border p-3 flex flex-col gap-2">
                                     <div className="flex justify-between text-xs text-text-secondary">
                                       <span>Subtotal Base:</span>
-                                      <span className="font-bold text-text-primary">${(venta.subtotal / 100).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                      <span className="font-bold text-text-primary">${formatearMoneda(venta.subtotal)}</span>
                                     </div>
                                     <div className="flex justify-between text-xs text-text-secondary border-b border-border pb-2">
                                       <span>Ajuste Global:</span>
                                       <span className={`font-bold ${venta.ajuste < 0 ? "text-danger" : venta.ajuste > 0 ? "text-success" : "text-text-primary"}`}>
-                                        ${(venta.ajuste / 100).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        ${formatearMoneda(venta.ajuste)}
                                       </span>
                                     </div>
                                     <div className="flex justify-between items-center">
                                       <span className="text-xs font-bold uppercase text-text-secondary">Cobrado:</span>
-                                      <span className="text-lg font-black text-text-primary">${(venta.total / 100).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                      <span className="text-lg font-black text-text-primary">${formatearMoneda(venta.total)}</span>
                                     </div>
                                   </div>
                                 </div>

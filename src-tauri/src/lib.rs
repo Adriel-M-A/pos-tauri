@@ -2,6 +2,7 @@ mod db;
 mod models;
 mod repositories;
 mod commands;
+pub mod error;
 
 use tauri::Manager;
 

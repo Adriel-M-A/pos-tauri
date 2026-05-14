@@ -3,6 +3,8 @@ import { HardDriveDownload, HardDriveUpload, AlertTriangle, CheckCircle, Clock }
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import { toast } from "sonner";
+import { differenceInCalendarDays } from "date-fns";
+import { parsearFechaDB } from "../utils/fecha";
 import ConfirmModal from "../components/ui/ConfirmModal";
 
 function Respaldos() {
@@ -29,13 +31,13 @@ function Respaldos() {
     }
   };
 
-  // Calcular días desde el último backup
+  // Calcula días transcurridos desde el último backup usando date-fns
+  // parsearFechaDB evita el comportamiento no definido de new Date(string) con formato SQLite
   const diasDesdeUltimoBackup = () => {
     if (!backupInfo || !backupInfo.ultimo_backup) return null;
-    const ultima = new Date(backupInfo.ultimo_backup);
-    const ahora = new Date();
-    const diff = Math.floor((ahora - ultima) / (1000 * 60 * 60 * 24));
-    return diff;
+    const ultima = parsearFechaDB(backupInfo.ultimo_backup);
+    if (!ultima) return null;
+    return differenceInCalendarDays(new Date(), ultima);
   };
 
   const dias = diasDesdeUltimoBackup();
@@ -66,7 +68,7 @@ function Respaldos() {
     } catch (err) {
       console.error("Error al crear backup:", err);
       toast.error("Error al crear respaldo", {
-        description: String(err),
+        description: err?.mensaje || String(err),
       });
     } finally {
       setIsProcessing(false);
@@ -106,7 +108,7 @@ function Respaldos() {
     } catch (err) {
       console.error("Error al restaurar:", err);
       toast.error("Error al restaurar respaldo", {
-        description: String(err),
+        description: err?.mensaje || String(err),
       });
     } finally {
       setIsProcessing(false);

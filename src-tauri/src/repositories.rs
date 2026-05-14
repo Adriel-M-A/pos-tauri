@@ -1,17 +1,25 @@
 use crate::models::{ItemVenta, Producto, Venta, VentaCreada, InformePayload, GraficoItem, RankingItem, MetodoPagoItem, Turno, CajaMovimiento, CierrePayload};
 use sqlx::SqlitePool;
+use crate::error::AppError;
+
+/// Genera el timestamp actual en hora local con el formato canónico del sistema.
+/// Mismo formato que date-fns espera en el frontend: "yyyy-MM-dd HH:mm:ss".
+fn ahora_local() -> String {
+    chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string()
+}
 
 // =========== REPOSITORIO PRODUCTOS ===========
 
-pub async fn repo_get_productos(pool: &SqlitePool) -> Result<Vec<Producto>, sqlx::Error> {
-    sqlx::query_as::<_, Producto>(
+pub async fn repo_get_productos(pool: &SqlitePool) -> Result<Vec<Producto>, AppError> {
+    let res = sqlx::query_as::<_, Producto>(
         r#"SELECT id, codigo, nombre, precio, stock, vende_por_peso, controla_stock, activo FROM productos"#
     )
     .fetch_all(pool)
-    .await
+    .await?;
+    Ok(res)
 }
 
-pub async fn repo_create_producto(pool: &SqlitePool, prod: Producto) -> Result<i64, sqlx::Error> {
+pub async fn repo_create_producto(pool: &SqlitePool, prod: Producto) -> Result<i64, AppError> {
     let mut tx = pool.begin().await?;
 
     // Insertar con código temporal para obtener el ID real de la DB
@@ -47,7 +55,7 @@ pub async fn repo_create_producto(pool: &SqlitePool, prod: Producto) -> Result<i
     Ok(new_id)
 }
 
-pub async fn repo_update_producto(pool: &SqlitePool, prod: Producto) -> Result<(), sqlx::Error> {
+pub async fn repo_update_producto(pool: &SqlitePool, prod: Producto) -> Result<(), AppError> {
     sqlx::query(
         r#"
         UPDATE productos 
@@ -68,9 +76,9 @@ pub async fn repo_update_producto(pool: &SqlitePool, prod: Producto) -> Result<(
     Ok(())
 }
 
-pub async fn repo_search_productos(pool: &SqlitePool, query: String) -> Result<Vec<Producto>, sqlx::Error> {
+pub async fn repo_search_productos(pool: &SqlitePool, query: String) -> Result<Vec<Producto>, AppError> {
     let wildcard = format!("%{}%", query);
-    sqlx::query_as::<_, Producto>(
+    let res = sqlx::query_as::<_, Producto>(
         r#"SELECT id, codigo, nombre, precio, stock, vende_por_peso, controla_stock, activo 
            FROM productos 
            WHERE activo = 1 AND (nombre LIKE ? OR codigo LIKE ?) 
@@ -79,16 +87,17 @@ pub async fn repo_search_productos(pool: &SqlitePool, query: String) -> Result<V
     .bind(&wildcard)
     .bind(&wildcard)
     .fetch_all(pool)
-    .await
+    .await?;
+    Ok(res)
 }
 
 // =========== REPOSITORIO VENTAS ===========
 
 /// Trae SOLO las cabeceras de ventas para una fecha específica (YYYY-MM-DD).
 /// No toca venta_items → ultra liviano para la grilla colapsada.
-pub async fn repo_get_ventas_by_date(pool: &SqlitePool, fecha: String) -> Result<Vec<Venta>, sqlx::Error> {
+pub async fn repo_get_ventas_by_date(pool: &SqlitePool, fecha: String) -> Result<Vec<Venta>, AppError> {
     let wildcard = format!("{}%", fecha);
-    sqlx::query_as::<_, Venta>(
+    let res = sqlx::query_as::<_, Venta>(
         r#"SELECT id, numero_ticket, fecha, subtotal, ajuste, total, metodo_pago, anulada, turno_id 
            FROM ventas 
            WHERE fecha LIKE ? 
@@ -96,12 +105,13 @@ pub async fn repo_get_ventas_by_date(pool: &SqlitePool, fecha: String) -> Result
     )
     .bind(&wildcard)
     .fetch_all(pool)
-    .await
+    .await?;
+    Ok(res)
 }
 
 /// Carga diferida: trae los items de UNA venta específica cuando el cajero expande la fila.
-pub async fn repo_get_venta_items(pool: &SqlitePool, venta_id: i64) -> Result<Vec<ItemVenta>, sqlx::Error> {
-    sqlx::query_as::<_, ItemVenta>(
+pub async fn repo_get_venta_items(pool: &SqlitePool, venta_id: i64) -> Result<Vec<ItemVenta>, AppError> {
+    let res = sqlx::query_as::<_, ItemVenta>(
         r#"SELECT vi.id, vi.venta_id, vi.producto_id, vi.nombre, vi.cantidad, vi.precio, vi.subtotal, p.vende_por_peso
            FROM venta_items vi
            JOIN productos p ON vi.producto_id = p.id
@@ -109,10 +119,11 @@ pub async fn repo_get_venta_items(pool: &SqlitePool, venta_id: i64) -> Result<Ve
     )
     .bind(venta_id)
     .fetch_all(pool)
-    .await
+    .await?;
+    Ok(res)
 }
 
-pub async fn repo_crear_venta(pool: &SqlitePool, mut v: Venta) -> Result<VentaCreada, sqlx::Error> {
+pub async fn repo_crear_venta(pool: &SqlitePool, mut v: Venta) -> Result<VentaCreada, AppError> {
     // 1. Iniciar Transacción Atómica
     let mut tx = pool.begin().await?;
 
@@ -125,7 +136,7 @@ pub async fn repo_crear_venta(pool: &SqlitePool, mut v: Venta) -> Result<VentaCr
     let numero_ticket_final = v.numero_ticket.clone();
 
     // Inyectar forzosamente el timestamp Local ignorando React UTC
-    v.fecha = chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
+    v.fecha = ahora_local();
 
     let result = sqlx::query(
         r#"
@@ -181,7 +192,7 @@ pub async fn repo_crear_venta(pool: &SqlitePool, mut v: Venta) -> Result<VentaCr
     Ok(VentaCreada { id: venta_id, numero_ticket: numero_ticket_final })
 }
 
-pub async fn repo_anular_venta(pool: &SqlitePool, id_venta: i64) -> Result<(), sqlx::Error> {
+pub async fn repo_anular_venta(pool: &SqlitePool, id_venta: i64) -> Result<(), AppError> {
     // 1. Recuperar info original e iniciar transaccion
     let mut tx = pool.begin().await?;
 
@@ -246,7 +257,7 @@ pub async fn repo_get_informe(
     desde: String,
     hasta: String,
     agrupacion: String,
-) -> Result<InformePayload, sqlx::Error> {
+) -> Result<InformePayload, AppError> {
 
     // Query 1: KPIs globales (Total Facturado + Cantidad de Tickets)
     let kpi: (i64, i64) = sqlx::query_as(
@@ -336,7 +347,7 @@ pub async fn repo_get_informe(
 // =========== REPOSITORIO TURNOS / CIERRE DE CAJA ===========
 
 /// Busca si existe un turno con estado 'abierto'
-pub async fn repo_get_turno_abierto(pool: &SqlitePool) -> Result<Option<Turno>, sqlx::Error> {
+pub async fn repo_get_turno_abierto(pool: &SqlitePool) -> Result<Option<Turno>, AppError> {
     let turno = sqlx::query_as::<_, Turno>(
         "SELECT * FROM turnos WHERE estado = 'abierto' LIMIT 1"
     )
@@ -346,12 +357,11 @@ pub async fn repo_get_turno_abierto(pool: &SqlitePool) -> Result<Option<Turno>, 
 }
 
 /// Abre un nuevo turno de caja
-pub async fn repo_abrir_turno(pool: &SqlitePool, fondo_inicial: i64) -> Result<i64, sqlx::Error> {
-    let ahora = chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
+pub async fn repo_abrir_turno(pool: &SqlitePool, fondo_inicial: i64) -> Result<i64, AppError> {
     let result = sqlx::query(
         "INSERT INTO turnos (fecha_apertura, fondo_inicial, estado) VALUES (?, ?, 'abierto')"
     )
-    .bind(&ahora)
+    .bind(ahora_local())
     .bind(fondo_inicial)
     .execute(pool)
     .await?;
@@ -365,8 +375,7 @@ pub async fn repo_registrar_movimiento(
     tipo: String,
     monto: i64,
     motivo: String,
-) -> Result<i64, sqlx::Error> {
-    let ahora = chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
+) -> Result<i64, AppError> {
     let result = sqlx::query(
         "INSERT INTO caja_movimientos (turno_id, tipo, monto, motivo, fecha) VALUES (?, ?, ?, ?, ?)"
     )
@@ -374,14 +383,14 @@ pub async fn repo_registrar_movimiento(
     .bind(&tipo)
     .bind(monto)
     .bind(&motivo)
-    .bind(&ahora)
+    .bind(ahora_local())
     .execute(pool)
     .await?;
     Ok(result.last_insert_rowid())
 }
 
 /// Obtiene los movimientos manuales del turno activo
-pub async fn repo_get_movimientos_turno(pool: &SqlitePool, turno_id: i64) -> Result<Vec<CajaMovimiento>, sqlx::Error> {
+pub async fn repo_get_movimientos_turno(pool: &SqlitePool, turno_id: i64) -> Result<Vec<CajaMovimiento>, AppError> {
     let movimientos = sqlx::query_as::<_, CajaMovimiento>(
         "SELECT * FROM caja_movimientos WHERE turno_id = ? ORDER BY fecha ASC"
     )
@@ -397,7 +406,7 @@ pub async fn repo_cerrar_turno(
     turno_id: i64,
     total_declarado: i64,
     observaciones: Option<String>,
-) -> Result<CierrePayload, sqlx::Error> {
+) -> Result<CierrePayload, AppError> {
     let mut tx = pool.begin().await?;
 
     // Leer el turno actual
@@ -438,7 +447,6 @@ pub async fn repo_cerrar_turno(
     // Cálculo del total esperado: fondo + ventas efectivo + ingresos - retiros
     let total_esperado = turno.fondo_inicial + ventas_efectivo + ingresos_manuales - retiros_manuales;
     let diferencia = total_declarado - total_esperado;
-    let ahora = chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
 
     // Actualizar el turno a cerrado
     sqlx::query(
@@ -446,7 +454,7 @@ pub async fn repo_cerrar_turno(
            fecha_cierre = ?, total_esperado = ?, total_declarado = ?, diferencia = ?, estado = 'cerrado', observaciones = ?
            WHERE id = ?"#
     )
-    .bind(&ahora)
+    .bind(ahora_local())
     .bind(total_esperado)
     .bind(total_declarado)
     .bind(diferencia)
@@ -470,7 +478,7 @@ pub async fn repo_cerrar_turno(
 
 /// Extrae todos los turnos cerrados de un mes específico (YYYY-MM) con sus movimientos.
 /// Usa JOIN para evitar el patrón N+1 queries.
-pub async fn repo_get_cierres_por_mes(pool: &SqlitePool, mes: String) -> Result<Vec<crate::models::TurnoConDetalles>, sqlx::Error> {
+pub async fn repo_get_cierres_por_mes(pool: &SqlitePool, mes: String) -> Result<Vec<crate::models::TurnoConDetalles>, AppError> {
     let wildcard = format!("{}%", mes);
     
     // Query 1: Todos los turnos cerrados del mes
@@ -525,7 +533,7 @@ pub async fn repo_get_cierres_por_mes(pool: &SqlitePool, mes: String) -> Result<
 }
 
 /// Total acumulado de ventas en efectivo + otros medios del turno activo (sin anuladas)
-pub async fn repo_get_total_ventas_turno(pool: &SqlitePool, turno_id: i64) -> Result<i64, sqlx::Error> {
+pub async fn repo_get_total_ventas_turno(pool: &SqlitePool, turno_id: i64) -> Result<i64, AppError> {
     let result: (i64,) = sqlx::query_as(
         "SELECT COALESCE(SUM(total), 0) FROM ventas WHERE turno_id = ? AND anulada = 0"
     )

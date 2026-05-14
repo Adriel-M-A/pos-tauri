@@ -1,8 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { DollarSign, Hash, TrendingUp, Maximize2, Minimize2 } from "lucide-react";
 import { invoke } from "@tauri-apps/api/core";
 import { format, subDays, startOfMonth, endOfMonth, subMonths, startOfWeek } from "date-fns";
+import { es } from "date-fns/locale";
+import LoadingBar from "../components/ui/LoadingBar";
+import { formatearMoneda } from "../utils/formato";
 
 function Informes() {
   const [periodo, setPeriodo] = useState("este_mes");
@@ -77,6 +80,7 @@ function Informes() {
     const { desde, hasta, agrupacion } = calcularRango(p);
     try {
       const payload = await invoke("get_informe", { desde, hasta, agrupacion });
+      if (!payload) return;
       setDatos(payload);
     } catch (err) {
       console.error("Fallo al cargar informe:", err);
@@ -98,11 +102,7 @@ function Informes() {
     <div className="flex flex-col h-full bg-bg-main p-4 gap-4 overflow-auto relative">
       
       {/* Indicador de carga superior */}
-      {isLoading && (
-        <div className="absolute top-0 left-0 right-0 h-1 bg-border overflow-hidden z-50">
-          <div className="w-1/3 h-full bg-accent animate-pulse"></div>
-        </div>
-      )}
+      <LoadingBar isVisible={isLoading} />
 
       {/* BOTONERA SUPERIOR */}
       <div className="flex gap-2">
@@ -121,9 +121,9 @@ function Informes() {
         <div className="col-span-2 bg-white p-4 border border-border shadow-sm flex items-center justify-between">
           <div>
             <p className="text-xs font-bold text-text-secondary uppercase mb-1">Total Facturado</p>
-            <p className="text-3xl font-black text-text-primary uppercase">${(datos.total_facturado / 100).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+            <p className="text-3xl font-black text-text-primary uppercase">${formatearMoneda(datos.total_facturado)}</p>
           </div>
-          <div className="w-12 h-12 bg-success/10 text-success rounded-full flex items-center justify-center shrink-0">
+          <div className="w-12 h-12 bg-success/10 text-success flex items-center justify-center shrink-0">
             <DollarSign size={24} />
           </div>
         </div>
@@ -134,7 +134,7 @@ function Informes() {
             <p className="text-xs font-bold text-text-secondary uppercase mb-1">Cantidad Ventas</p>
             <p className="text-3xl font-black text-text-primary">{datos.cantidad_ventas} Tickets</p>
           </div>
-          <div className="w-12 h-12 bg-accent/10 text-accent rounded-full flex items-center justify-center shrink-0">
+          <div className="w-12 h-12 bg-accent/10 text-accent flex items-center justify-center shrink-0">
             <Hash size={24} />
           </div>
         </div>
@@ -143,9 +143,9 @@ function Informes() {
         <div className="col-span-2 bg-white p-4 border border-border shadow-sm flex items-center justify-between">
           <div>
             <p className="text-xs font-bold text-text-secondary uppercase mb-1">Ticket Promedio</p>
-            <p className="text-3xl font-black text-text-primary uppercase">${Math.round(datos.promedio_ticket / 100).toLocaleString("es-AR")}</p>
+            <p className="text-3xl font-black text-text-primary uppercase">${formatearMoneda(datos.promedio_ticket)}</p>
           </div>
-          <div className="w-12 h-12 bg-text-primary/10 text-text-primary rounded-full flex items-center justify-center shrink-0">
+          <div className="w-12 h-12 bg-text-primary/10 text-text-primary flex items-center justify-center shrink-0">
             <TrendingUp size={24} />
           </div>
         </div>
@@ -174,9 +174,9 @@ function Informes() {
                 />
                 <Tooltip 
                   cursor={{fill: '#F1F5F9'}} 
-                  contentStyle={{ backgroundColor: '#1E293B', border: 'none', color: '#FFF', fontWeight: 'bold', fontSize: '13px' }}
-                  itemStyle={{color: '#FFF'}}
-                  formatter={(value) => [`$${(value / 100).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, "Facturación"]}
+                  contentStyle={{ backgroundColor: '#1e1e1e', border: 'none', color: '#ffffff', fontWeight: 'bold', fontSize: '13px' }}
+                  itemStyle={{color: '#ffffff'}}
+                  formatter={(value) => [`$${formatearMoneda(value)}`, "Facturación"]}
                 />
                 <Bar 
                   dataKey="total" 
@@ -216,7 +216,7 @@ function Informes() {
                         <span className="text-sm font-bold text-text-primary capitalize">{mp.metodo_pago}</span>
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-black text-accent">
-                            ${(mp.total / 100).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            ${formatearMoneda(mp.total)}
                           </span>
                           <span className="text-[10px] font-bold text-text-secondary bg-white px-1.5 py-0.5 border border-border">
                             {porcentaje}%

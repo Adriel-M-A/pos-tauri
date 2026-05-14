@@ -13,8 +13,8 @@
     "windows": [
       {
         "title": "Sistema POS",
-        "width": 1200,
-        "height": 600,
+        "width": 1280,
+        "height": 720,
         "maximized": true,
         "resizable": false
       }

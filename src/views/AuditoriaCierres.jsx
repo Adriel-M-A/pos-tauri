@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback, Fragment } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { format, parse } from "date-fns";
-import { es } from "date-fns/locale";
+import { format } from "date-fns";
+import { formatearFecha } from "../utils/fecha";
 import { ChevronDown } from "lucide-react";
+import LoadingBar from "../components/ui/LoadingBar";
+import { formatearMoneda } from "../utils/formato";
 
 function AuditoriaCierres() {
   const [mes, setMes] = useState(() => format(new Date(), "yyyy-MM"));
@@ -34,28 +36,11 @@ function AuditoriaCierres() {
     setFilaExpandida(filaExpandida === id ? null : id);
   };
 
-
-
-  // Formatear fechas
-  const formatearFechaCierre = (fechaStr) => {
-    if (!fechaStr) return "-";
-    try {
-      const fechaObj = parse(fechaStr, "yyyy-MM-dd HH:mm:ss", new Date());
-      return format(fechaObj, "dd/MM/yyyy HH:mm", { locale: es });
-    } catch {
-      return fechaStr;
-    }
-  };
-
   return (
     <div className="flex flex-col h-full bg-bg-main p-4 gap-4 overflow-hidden relative">
       
       {/* Indicador de carga superior */}
-      {isLoading && (
-        <div className="absolute top-0 left-0 right-0 h-1 bg-border overflow-hidden z-50">
-          <div className="w-1/3 h-full bg-text-primary animate-pulse"></div>
-        </div>
-      )}
+      <LoadingBar isVisible={isLoading} />
 
       {/* CABECERA MINIMA */}
       <div className="flex items-center justify-between">
@@ -116,22 +101,22 @@ function AuditoriaCierres() {
                       >
                         <td className="px-4 py-3 text-sm font-black text-text-primary">
                           <span className="text-text-secondary font-normal mr-2">#{turno.id}</span>
-                          {formatearFechaCierre(turno.fecha_cierre)}
+                          {formatearFecha(turno.fecha_cierre)}
                         </td>
                         <td className="px-4 py-3 text-sm text-right text-text-secondary hidden sm:table-cell">
-                          {formatearFechaCierre(turno.fecha_apertura)}
+                          {formatearFecha(turno.fecha_apertura)}
                         </td>
                         <td className="px-4 py-3 text-sm text-right font-medium">
-                          ${((turno.fondo_inicial || 0) / 100).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          ${formatearMoneda(turno.fondo_inicial || 0)}
                         </td>
                         <td className="px-4 py-3 text-sm text-right font-medium hidden md:table-cell">
-                          ${((turno.total_esperado || 0) / 100).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          ${formatearMoneda(turno.total_esperado || 0)}
                         </td>
                         <td className="px-4 py-3 text-sm text-right font-black">
-                          ${((turno.total_declarado || 0) / 100).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          ${formatearMoneda(turno.total_declarado || 0)}
                         </td>
                         <td className={`px-4 py-3 text-right font-black tracking-wider text-base border-l border-border/50 ${colorDifStr}`}>
-                          {dif >= 0 ? "+" : ""}{(dif / 100).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          {dif >= 0 ? "+" : ""}{formatearMoneda(dif)}
                         </td>
                         <td className="px-4 py-3 text-right text-text-secondary">
                           <ChevronDown 
@@ -159,7 +144,7 @@ function AuditoriaCierres() {
                                             <td className="px-3 py-2 text-text-secondary w-20">{mov.tipo.toUpperCase()}</td>
                                             <td className="px-3 py-2 text-text-primary">{mov.motivo || "-"}</td>
                                             <td className={`px-3 py-2 text-right font-bold tracking-wider ${mov.tipo === 'ingreso' ? 'text-success' : 'text-danger'}`}>
-                                              {mov.tipo === 'ingreso' ? "+" : "-"}${(mov.monto / 100).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                              {mov.tipo === 'ingreso' ? "+" : "-"}${formatearMoneda(mov.monto)}
                                             </td>
                                           </tr>
                                         ))}

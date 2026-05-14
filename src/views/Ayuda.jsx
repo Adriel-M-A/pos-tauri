@@ -22,12 +22,7 @@ const TABS = [
 
 function Ayuda() {
   const [tabActiva, setTabActiva] = useState("introduccion");
-  const [contenido, setContenido] = useState("");
-
-  useEffect(() => {
-    const selected = TABS.find((t) => t.id === tabActiva);
-    setContenido(selected ? selected.contenido : "");
-  }, [tabActiva]);
+  const contenido = TABS.find((t) => t.id === tabActiva)?.contenido ?? "";
 
   return (
     <div className="flex flex-col h-full bg-bg-main">

@@ -16,7 +16,7 @@ function ConfirmModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
       <div className="bg-white border-2 border-danger w-full max-w-sm shadow-xl flex flex-col pointer-events-auto">
         
         {/* Cabecera Peligro */}

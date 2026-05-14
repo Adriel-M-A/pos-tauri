@@ -1,7 +1,9 @@
-import { useState, useEffect, useMemo, useRef } from "react";
-import { Search, Plus, Loader2, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { Search, Plus, Loader2, PackageOpen, AlertTriangle, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { toast } from "sonner";
 import { invoke } from "@tauri-apps/api/core";
+import LoadingBar from "../components/ui/LoadingBar";
+import { formatearMoneda } from "../utils/formato";
 import ModalProducto from "../components/ModalProducto";
 import KeyBadge from "../components/ui/KeyBadge";
 
@@ -36,17 +38,17 @@ function Inventario() {
   }, []);
 
   // Carga maestra desde Rust / SQLite
-  const cargarProductos = async () => {
+  const cargarProductos = useCallback(async () => {
     setIsLoading(true);
     try {
       const productosDuros = await invoke("get_productos");
-      setListaProductos(productosDuros);
+      setListaProductos(productosDuros || []);
     } catch (error) {
       console.error("Falla al recuperar inventario:", error);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     cargarProductos();
@@ -120,7 +122,7 @@ function Inventario() {
     } catch (err) {
       console.error("Falló la atómica de base:", err);
       toast.error("Error al guardar producto", {
-        description: "Revisa la conexión o intenta nuevamente."
+        description: err?.mensaje || "Revisa la conexión o intenta nuevamente."
       });
     } finally {
       setIsLoading(false);
@@ -166,7 +168,7 @@ function Inventario() {
 
       if (campo === "precio") {
         toast.success("Precio actualizado", {
-          description: `${clon.nombre}: $${(clon.precio / 100).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+          description: `${clon.nombre}: $${formatearMoneda(clon.precio)}`
         });
       } else {
         toast.success("Stock actualizado", {
@@ -176,7 +178,7 @@ function Inventario() {
     } catch (err) {
       console.error("Fallo edición rápida:", err);
       toast.error("Fallo la actualización rápida", {
-        description: "El cambio no pudo guardarse."
+        description: err?.mensaje || "El cambio no pudo guardarse."
       });
     } finally {
       setIsLoading(false);
@@ -193,11 +195,7 @@ function Inventario() {
     <div className="flex flex-col h-full bg-bg-main relative">
 
       {/* OVERLAY DE CARGA (Opcional, muy sutil) */}
-      {isLoading && (
-        <div className="absolute top-0 left-0 right-0 h-1 bg-border overflow-hidden z-50">
-          <div className="w-1/3 h-full bg-accent animate-pulse relative"></div>
-        </div>
-      )}
+      <LoadingBar isVisible={isLoading} />
 
       {/* Panel Superior de Control */}
       <div className="flex items-center justify-between p-4 bg-bg-panel border-b border-border">

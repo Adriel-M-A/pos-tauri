@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import KeyBadge from "../components/ui/KeyBadge";
 import { invoke } from "@tauri-apps/api/core";
 import PanelCobro from "../components/PanelCobro";
+import { formatearMoneda } from "../utils/formato";
 
 function Caja({ onCambiarVista }) {
   const [busqueda, setBusqueda] = useState("");
@@ -23,7 +24,7 @@ function Caja({ onCambiarVista }) {
     const verificarTurno = async () => {
       try {
         const turno = await invoke("get_turno_abierto");
-        setTurnoActivo(turno);
+        setTurnoActivo(turno || null);
       } catch (err) {
         console.error("Fallo al verificar turno abierto:", err);
       } finally {
@@ -35,29 +36,41 @@ function Caja({ onCambiarVista }) {
 
   const inputRef = useRef(null);
   const dropdownRef = useRef(null);
+  const prevQuery = useRef("");
 
   // --- Buscador Inteligente asíncrono (Debounce 300ms) ---
   useEffect(() => {
     let isActive = true;
 
+    const terminoLimpio = busqueda.trim();
+
     // Si tiene 2 letras o menos no colapsamos el sistema
-    if (busqueda.trim().length <= 2) {
+    if (terminoLimpio.length <= 2) {
       setProductosFiltrados([]);
       setMostrarDropdown(false);
       setIndiceSeleccion(0);
+      prevQuery.current = ""; // Limpiar caché
+      return;
+    }
+
+    if (terminoLimpio === prevQuery.current) {
       return;
     }
 
     const timerId = setTimeout(async () => {
       try {
-        const results = await invoke("search_productos", { query: busqueda.trim() });
+        prevQuery.current = terminoLimpio;
+        const results = await invoke("search_productos", { query: terminoLimpio });
+        if (!results) return; // Validación mínima post-invoke
+        
         if (isActive) {
           setProductosFiltrados(results);
           setMostrarDropdown(results.length > 0);
           setIndiceSeleccion(0);
         }
       } catch (err) {
-        console.error("Fallo ejecutando Query LIKE a Rust:", err);
+        console.error("Fallo ejecutando Query a Rust:", err);
+        prevQuery.current = ""; // Reset on error
       }
     }, 300);
 
@@ -86,17 +99,17 @@ function Caja({ onCambiarVista }) {
         .reduce((sum, item) => sum + Number(item.cantidad || 0), 0);
 
       // Si controla stock, verificamos si hay lugar
-      if (producto.controla_stock) {
-        // Para productos pesables, la cantidad en carrito está en gramos, convertimos a Kg para comparar
-        const cantidadEnCarritoKg = prev
+      // Los productos pesables se validan recién al ingresar el peso en modificarCantidadExacta
+      if (producto.controla_stock && !producto.vende_por_peso) {
+        const cantidadEnCarrito = prev
           .filter(item => item.id === producto.id)
-          .reduce((sum, item) => sum + (Number(item.cantidad || 0) / (item.vende_por_peso ? 1000 : 1)), 0);
+          .reduce((sum, item) => sum + Number(item.cantidad || 0), 0);
 
-        const nuevaCantidadKg = cantidadEnCarritoKg + (producto.vende_por_peso ? 0 : 1);
+        const nuevaCantidad = cantidadEnCarrito + 1;
 
-        if (producto.stock <= 0 || nuevaCantidadKg > producto.stock) {
+        if (producto.stock <= 0 || nuevaCantidad > producto.stock) {
           toast.error("Stock insuficiente", {
-            description: `Solo queda(n) ${producto.stock} ${producto.vende_por_peso ? 'kg' : 'un.'} en inventario.`,
+            description: `Solo queda(n) ${producto.stock} un. en inventario.`,
           });
           return prev; 
         }
@@ -257,7 +270,7 @@ function Caja({ onCambiarVista }) {
     } catch (error) {
       console.error("Transacción Rollback ejecutada: Falla al grabar ticket.", error);
       toast.error("Error al registrar venta", {
-        description: "Hubo un problema. Por favor reintenta o contacta a soporte.",
+        description: error?.mensaje || "Hubo un problema. Por favor reintenta o contacta a soporte.",
         duration: 4000,
       });
     }
@@ -409,7 +422,7 @@ function Caja({ onCambiarVista }) {
                       Stock: {producto.stock}
                     </span>
                     <span className="text-sm font-bold text-accent w-20 text-right">
-                      ${(producto.precio / 100).toLocaleString("es-AR")}
+                      ${formatearMoneda(producto.precio)}
                     </span>
                   </div>
                 </button>
@@ -474,7 +487,7 @@ function Caja({ onCambiarVista }) {
                       {item.nombre}
                     </td>
                     <td className="px-4 py-3 text-sm text-text-primary text-right">
-                      ${(item.precio / 100).toLocaleString("es-AR")}
+                      ${formatearMoneda(item.precio)}
                     </td>
                     <td className="px-4 py-3">
                       {item.vende_por_peso ? (
@@ -514,7 +527,7 @@ function Caja({ onCambiarVista }) {
                       )}
                     </td>
                     <td className="px-4 py-3 text-sm font-bold text-text-primary text-right">
-                      ${((item.precio * (item.vende_por_peso ? (Number(item.cantidad) / 1000) : (Number(item.cantidad) || 0))) / 100).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      ${formatearMoneda(item.precio * (item.vende_por_peso ? (Number(item.cantidad) / 1000) : (Number(item.cantidad) || 0)))}
                     </td>
                     <td className="py-3 text-center">
                       <button

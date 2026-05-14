@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { DollarSign, Plus, Minus } from "lucide-react";
 import { metodosPago } from "../data/metodosPago";
 import KeyBadge from "./ui/KeyBadge";
+import { formatearMoneda } from "../utils/formato";
 
 function PanelCobro({ subtotal, onCobrar }) {
   const [ajusteModalidad, setAjusteModalidad] = useState("descuento"); // 'descuento' o 'recargo'
@@ -100,7 +101,7 @@ function PanelCobro({ subtotal, onCobrar }) {
           Total a Pagar
         </span>
         <span className="text-5xl font-black text-text-primary">
-          ${(totalAPagar / 100).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          ${formatearMoneda(totalAPagar)}
         </span>
       </div>
 
@@ -112,7 +113,7 @@ function PanelCobro({ subtotal, onCobrar }) {
             Subtotal
           </span>
           <span className="text-lg font-bold text-text-primary">
-            ${(subtotal / 100).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            ${formatearMoneda(subtotal)}
           </span>
         </div>
 
@@ -149,7 +150,7 @@ function PanelCobro({ subtotal, onCobrar }) {
           </div>
           {ajusteAbsolutoUsuario > 0 && (
             <p className={`text-xs mt-2 text-right font-medium ${ajusteModalidad === "descuento" ? "text-danger" : "text-success"}`}>
-              {ajusteModalidad === "descuento" ? "Aplicando descuento" : "Aplicando recargo"}: ${ajusteAbsolutoUsuario.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {ajusteModalidad === "descuento" ? "Aplicando descuento" : "Aplicando recargo"}: ${formatearMoneda(Math.abs(ajusteNumericoCentavos))}
             </p>
           )}
         </div>
@@ -214,7 +215,7 @@ function PanelCobro({ subtotal, onCobrar }) {
                   vuelto >= 0 ? "text-success" : "text-danger"
                 }`}
               >
-                ${(vuelto / 100).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                ${formatearMoneda(vuelto)}
               </span>
             </div>
           </div>
@@ -230,7 +231,7 @@ function PanelCobro({ subtotal, onCobrar }) {
             w-full py-4 text-xl font-bold border-none cursor-pointer flex items-center justify-center gap-2 shadow-md
             ${
               puedeCobrar
-                ? "bg-accent text-white hover:bg-accent-hover transform active:scale-95 transition-transform"
+                ? "bg-accent text-white hover:bg-accent-hover"
                 : "bg-border-light text-text-secondary cursor-not-allowed opacity-70"
             }
           `}
