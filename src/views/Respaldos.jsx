@@ -6,8 +6,8 @@ import { toast } from "sonner";
 import { differenceInCalendarDays } from "date-fns";
 import { parsearFechaDB } from "../utils/fecha";
 import ConfirmModal from "../components/ui/ConfirmModal";
-import TituloVista from "../components/ui/TituloVista";
 import Boton from "../components/ui/Boton";
+import EncabezadoVista from "../components/ui/EncabezadoVista";
 
 function Respaldos() {
   const [backupInfo, setBackupInfo] = useState(null);
@@ -128,9 +128,10 @@ function Respaldos() {
         </div>
       )}
 
-      <div className="p-4 bg-bg-main">
-        <TituloVista titulo="Copias de Seguridad" />
-      </div>
+      <EncabezadoVista
+        titulo="Copias de Seguridad"
+        variante="plano"
+      />
 
       {/* Contenido centrado (razonable para 2 tarjetas de acción) */}
       <div className="flex-1 overflow-auto p-4">

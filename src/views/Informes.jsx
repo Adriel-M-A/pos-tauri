@@ -6,6 +6,7 @@ import { format, subDays, startOfMonth, endOfMonth, subMonths, startOfWeek } fro
 import { es } from "date-fns/locale";
 import LoadingBar from "../components/ui/LoadingBar";
 import { formatearMoneda } from "../utils/formato";
+import EncabezadoVista from "../components/ui/EncabezadoVista";
 
 function Informes() {
   const [periodo, setPeriodo] = useState("este_mes");
@@ -99,22 +100,27 @@ function Informes() {
   }`;
 
   return (
-    <div className="flex flex-col h-full bg-bg-main p-4 gap-4 overflow-auto relative">
+    <div className="flex flex-col h-full bg-bg-main gap-4 overflow-hidden relative">
       
       {/* Indicador de carga superior */}
       <LoadingBar isVisible={isLoading} />
 
       {/* BOTONERA SUPERIOR */}
-      <div className="flex gap-2">
-        <button className={btnClases("hoy")} onClick={() => setPeriodo("hoy")}>Hoy</button>
-        <button className={btnClases("ayer")} onClick={() => setPeriodo("ayer")}>Ayer</button>
-        <button className={btnClases("esta_semana")} onClick={() => setPeriodo("esta_semana")}>Esta Semana</button>
-        <button className={btnClases("este_mes")} onClick={() => setPeriodo("este_mes")}>Este Mes</button>
-        <button className={btnClases("mes_anterior")} onClick={() => setPeriodo("mes_anterior")}>Mes Anterior</button>
-      </div>
+      <EncabezadoVista
+        variante="plano"
+        segundaFila={
+          <div className="flex gap-2">
+            <button className={btnClases("hoy")} onClick={() => setPeriodo("hoy")}>Hoy</button>
+            <button className={btnClases("ayer")} onClick={() => setPeriodo("ayer")}>Ayer</button>
+            <button className={btnClases("esta_semana")} onClick={() => setPeriodo("esta_semana")}>Esta Semana</button>
+            <button className={btnClases("este_mes")} onClick={() => setPeriodo("este_mes")}>Este Mes</button>
+            <button className={btnClases("mes_anterior")} onClick={() => setPeriodo("mes_anterior")}>Mes Anterior</button>
+          </div>
+        }
+      />
 
       {/* CUERPO DE DATOS EN GRILLA DE 6 COLUMNAS */}
-      <div className="grid grid-cols-6 grid-rows-[auto_1fr] gap-4 flex-1 min-h-0">
+      <div className="grid grid-cols-6 grid-rows-[auto_1fr] gap-4 flex-1 min-h-0 px-4 pb-4">
         
         {/* FILA 1: KPIs (3 cards x 2 cols c/u) */}
         {/* Total Facturado */}
@@ -153,7 +159,7 @@ function Informes() {
         {/* FILA 2: GRAFICO (4 cols) + RANKING (2 cols) */}
         
         {/* ZONA IZQ: Grafico de Barras */}
-        <div className="col-span-4 bg-white border border-border shadow-sm p-4 flex flex-col min-h-[350px]">
+        <div className="col-span-4 bg-white border border-border shadow-sm p-4 flex flex-col flex-1">
           <h3 className="text-sm font-bold text-text-secondary uppercase mb-4">Ingresos por Período</h3>
           
           <div className="flex-1 w-full relative">

@@ -9,6 +9,8 @@ import { formatearMoneda } from "../utils/formato";
 import ConfirmModal from "../components/ui/ConfirmModal";
 import EstadoVacio from "../components/ui/EstadoVacio";
 import Boton from "../components/ui/Boton";
+import Tabla from "../components/ui/Tabla";
+import EncabezadoVista from "../components/ui/EncabezadoVista";
 
 function Historial() {
   // Inicialización de "hoy" basada estrictamente en la Zona Horaria Local (Ej: '2026-04-11')
@@ -127,107 +129,96 @@ function Historial() {
       <LoadingBar isVisible={isLoading} />
 
       {/* BARRA SUPERIOR DE CONTROL */}
-      <div className="flex flex-col gap-4 p-4 bg-bg-panel border-b border-border">
+      <EncabezadoVista
+        variante="panel"
+        segundaFila={
+          <div className="flex flex-col gap-4">
+            {/* Filtros e Inputs */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 border border-border px-3 py-2 bg-white focus-within:border-accent">
+                  <span className="text-xs font-bold text-text-secondary uppercase">DÍA:</span>
+                  <input
+                    type="date"
+                    value={fechaFiltro}
+                    onChange={(e) => setFechaFiltro(e.target.value)}
+                    className="outline-none border-none bg-transparent text-sm text-text-primary font-bold cursor-pointer"
+                  />
+                </div>
+                <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-text-secondary hover:text-text-primary select-none whitespace-nowrap">
+                  <input
+                    type="checkbox"
+                    checked={mostrarAnuladas}
+                    onChange={(e) => setMostrarAnuladas(e.target.checked)}
+                    className="accent-accent"
+                  />
+                  Mostrar anuladas
+                </label>
+              </div>
+            </div>
 
-        {/* Filtros e Inputs */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 border border-border px-3 py-2 bg-white focus-within:border-accent">
-              <span className="text-xs font-bold text-text-secondary uppercase">DÍA:</span>
-              <input
-                type="date"
-                value={fechaFiltro}
-                onChange={(e) => setFechaFiltro(e.target.value)}
-                className="outline-none border-none bg-transparent text-sm text-text-primary font-bold cursor-pointer"
-              />
-            </div>
-            <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-text-secondary hover:text-text-primary select-none whitespace-nowrap">
-              <input
-                type="checkbox"
-                checked={mostrarAnuladas}
-                onChange={(e) => setMostrarAnuladas(e.target.checked)}
-                className="accent-accent"
-              />
-              Mostrar anuladas
-            </label>
-          </div>
-        </div>
+            {/* TARJETONES (KPIs) */}
+            <div className="flex gap-4">
+              {/* KPI 1 */}
+              <div className="flex-1 flex items-center p-3 bg-white border border-border shadow-sm">
+                <div className="w-10 h-10 bg-accent/10 flex items-center justify-center text-accent mr-3">
+                  <Receipt size={20} />
+                </div>
+                <div>
+                  <span className="text-xs font-bold text-text-secondary uppercase tracking-wider block mb-0.5">
+                    Tickets Emitidos
+                  </span>
+                  <span className="text-2xl font-black text-text-primary">
+                    {kpis.cantidad}
+                  </span>
+                </div>
+              </div>
 
-        {/* TARJETONES (KPIs) */}
-        <div className="flex gap-4">
-          {/* KPI 1 */}
-          <div className="flex-1 flex items-center p-3 bg-white border border-border shadow-sm">
-            <div className="w-10 h-10 bg-accent/10 flex items-center justify-center text-accent mr-3">
-              <Receipt size={20} />
-            </div>
-            <div>
-              <span className="text-xs font-bold text-text-secondary uppercase tracking-wider block mb-0.5">
-                Tickets Emitidos
-              </span>
-              <span className="text-2xl font-black text-text-primary">
-                {kpis.cantidad}
-              </span>
-            </div>
-          </div>
-
-          {/* KPI 2 */}
-          <div className="flex-1 flex items-center p-3 bg-white border border-border shadow-sm">
-            <div className="w-10 h-10 bg-success/10 flex items-center justify-center text-success mr-3">
-              <DollarSign size={20} />
-            </div>
-            <div>
-              <span className="text-xs font-bold text-text-secondary uppercase tracking-wider block mb-0.5">
-                Ingreso Diario
-              </span>
-              <span className="text-2xl font-black text-text-primary">
-                ${formatearMoneda(kpis.ingresoTotal)}
-              </span>
+              {/* KPI 2 */}
+              <div className="flex-1 flex items-center p-3 bg-white border border-border shadow-sm">
+                <div className="w-10 h-10 bg-success/10 flex items-center justify-center text-success mr-3">
+                  <DollarSign size={20} />
+                </div>
+                <div>
+                  <span className="text-xs font-bold text-text-secondary uppercase tracking-wider block mb-0.5">
+                    Ingreso Diario
+                  </span>
+                  <span className="text-2xl font-black text-text-primary">
+                    ${formatearMoneda(kpis.ingresoTotal)}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
+        }
+      />
 
       {/* GRILLA PRINCIPAL */}
-      <div className="flex-1 overflow-auto p-4">
-        <div className="bg-white border border-border shadow-sm flex flex-col min-h-0 overflow-hidden">
-          <div className="overflow-auto flex-1">
-            <table className="w-full border-collapse">
-              <thead className="sticky top-0 bg-bg-panel border-b-2 border-text-primary z-10 shadow-sm">
-                <tr>
-                  <th className="text-left text-xs font-bold text-text-secondary px-4 py-3 uppercase tracking-wider">Fecha y Hora</th>
-                  <th className="text-left text-xs font-bold text-text-secondary px-4 py-3 uppercase tracking-wider">N° Ticket</th>
-                  <th className="text-left text-xs font-bold text-text-secondary px-4 py-3 uppercase tracking-wider">Método Pago</th>
-                  <th className="text-right text-xs font-bold text-text-secondary px-4 py-3 uppercase tracking-wider hidden md:table-cell">Ajuste</th>
-                  <th className="text-right text-xs font-bold text-text-secondary px-4 py-3 uppercase tracking-wider border-l border-border/50 w-36">Total Cobrado</th>
-                  <th className="w-10"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {/* Estado vacío */}
-                {ventasFiltradas.length === 0 && !isLoading && (
-                  <tr>
-                    <td colSpan="6" className="py-20">
-                      <EstadoVacio 
-                        icono={Receipt}
-                        titulo="Sin ventas"
-                        descripcion={listaVentas.length === 0
-                          ? "No hay ventas registradas para esta fecha."
-                          : "No hay ventas activas. Activá 'Mostrar anuladas' para verlas."}
-                      />
-                    </td>
-                  </tr>
-                )}
-
-                {/* Estado de carga inicial */}
-                {listaVentas.length === 0 && isLoading && (
-                  <tr>
-                    <td colSpan="6" className="text-center py-12 text-accent text-sm font-bold animate-pulse">
-                      Consultando historial en base de datos...
-                    </td>
-                  </tr>
-                )}
-
-                {ventasFiltradas.map((venta) => {
+      <div className="flex-1 p-4 flex flex-col min-h-0">
+        <Tabla
+          stickyHeader={true}
+          columnas={[
+            { titulo: "Fecha y Hora", alinear: "left" },
+            { titulo: "N° Ticket", alinear: "left" },
+            { titulo: "Método Pago", alinear: "left" },
+            { titulo: "Ajuste", alinear: "right", ocultarBajo: "md" },
+            { titulo: "Total Cobrado", alinear: "right", clasesExtras: "w-36 border-l border-border/50" },
+            { titulo: "", alinear: "left", clasesExtras: "w-10" }
+          ]}
+          isLoading={listaVentas.length === 0 && isLoading}
+          mensajeCarga="Consultando historial en base de datos..."
+          mostrarVacio={ventasFiltradas.length === 0 && !isLoading}
+          estadoVacio={
+            <EstadoVacio 
+              icono={Receipt}
+              titulo="Sin ventas"
+              descripcion={listaVentas.length === 0
+                ? "No hay ventas registradas para esta fecha."
+                : "No hay ventas activas. Activá 'Mostrar anuladas' para verlas."}
+            />
+          }
+        >
+          {ventasFiltradas.map((venta) => {
                   const isExpanded = expandedId === venta.id;
 
                   // Formateo usando el helper centralizado de fechas
@@ -355,10 +346,7 @@ function Historial() {
                     </Fragment>
                   );
                 })}
-              </tbody>
-            </table>
-          </div>
-        </div>
+          </Tabla>
       </div>
 
       <ConfirmModal

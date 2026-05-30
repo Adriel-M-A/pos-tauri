@@ -2,10 +2,12 @@ import { useState, useEffect, useCallback, Fragment } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { format } from "date-fns";
 import { formatearFecha } from "../utils/fecha";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, ShieldCheck } from "lucide-react";
 import LoadingBar from "../components/ui/LoadingBar";
 import { formatearMoneda } from "../utils/formato";
-import TituloVista from "../components/ui/TituloVista";
+import Tabla from "../components/ui/Tabla";
+import EstadoVacio from "../components/ui/EstadoVacio";
+import EncabezadoVista from "../components/ui/EncabezadoVista";
 
 function AuditoriaCierres() {
   const [mes, setMes] = useState(() => format(new Date(), "yyyy-MM"));
@@ -38,51 +40,52 @@ function AuditoriaCierres() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-bg-main p-4 gap-4 overflow-hidden relative">
+    <div className="flex flex-col h-full bg-bg-main gap-4 overflow-hidden relative">
       
       {/* Indicador de carga superior */}
       <LoadingBar isVisible={isLoading} />
 
-      <TituloVista titulo="Auditoría de Cierres" />
-      
-      {/* FILTROS */}
-      <div className="flex items-center justify-between mb-2">
-        <div></div> {/* Espaciador para alinear a la derecha */}
-        <div className="flex items-center gap-3">
-          <label className="text-xs font-bold text-text-secondary uppercase">Período:</label>
-          <input
-            type="month"
-            value={mes}
-            onChange={(e) => setMes(e.target.value)}
-            className="border border-border bg-white text-sm font-bold text-text-primary px-3 py-2 outline-none focus:border-text-primary"
-          />
-        </div>
-      </div>
+      <EncabezadoVista
+        titulo="Auditoría de Cierres"
+        variante="plano"
+        accionDerecha={
+          <div className="flex items-center gap-3">
+            <label className="text-xs font-bold text-text-secondary uppercase">Período:</label>
+            <input
+              type="month"
+              value={mes}
+              onChange={(e) => setMes(e.target.value)}
+              className="border border-border bg-white text-sm font-bold text-text-primary px-3 py-2 outline-none focus:border-text-primary"
+            />
+          </div>
+        }
+      />
 
       {/* TABLA PRINCIPAL DE DATOS */}
-      <div className="flex-1 bg-white border border-border shadow-sm flex flex-col min-h-0 overflow-hidden">
-        <div className="overflow-auto flex-1">
-          <table className="w-full border-collapse">
-            <thead className="sticky top-0 bg-bg-panel border-b-2 border-text-primary z-10 shadow-sm">
-              <tr>
-                <th className="text-left text-xs font-bold text-text-secondary px-4 py-3 uppercase tracking-wider">Turno / Cierre</th>
-                <th className="text-right text-xs font-bold text-text-secondary px-4 py-3 uppercase tracking-wider hidden sm:table-cell">Apertura</th>
-                <th className="text-right text-xs font-bold text-text-secondary px-4 py-3 uppercase tracking-wider">Fondo Inicial</th>
-                <th className="text-right text-xs font-bold text-text-secondary px-4 py-3 uppercase tracking-wider hidden md:table-cell">Total Esperado</th>
-                <th className="text-right text-xs font-bold text-text-secondary px-4 py-3 uppercase tracking-wider">Total Declarado</th>
-                <th className="text-right text-xs font-bold text-text-secondary px-4 py-3 uppercase tracking-wider w-32 border-l border-border/50">Diferencia</th>
-                <th className="w-10"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {cierres.length === 0 && !isLoading ? (
-                <tr>
-                  <td colSpan="7" className="text-center py-12">
-                    <p className="text-text-secondary text-sm font-bold uppercase tracking-wider">No hay cierres registrados en {mes}</p>
-                  </td>
-                </tr>
-              ) : (
-                cierres.map((turno) => {
+      <div className="flex-1 flex flex-col min-h-0 px-4 pb-4">
+        <Tabla
+          stickyHeader={true}
+          columnas={[
+            { titulo: "Turno / Cierre", alinear: "left" },
+            { titulo: "Apertura", alinear: "right", ocultarBajo: "sm" },
+            { titulo: "Fondo Inicial", alinear: "right" },
+            { titulo: "Total Esperado", alinear: "right", ocultarBajo: "md" },
+            { titulo: "Total Declarado", alinear: "right" },
+            { titulo: "Diferencia", alinear: "right", clasesExtras: "w-32 border-l border-border/50" },
+            { titulo: "", alinear: "left", clasesExtras: "w-10" }
+          ]}
+          isLoading={cierres.length === 0 && isLoading}
+          mensajeCarga="Cargando historial de cierres..."
+          mostrarVacio={cierres.length === 0 && !isLoading}
+          estadoVacio={
+            <EstadoVacio
+              icono={ShieldCheck}
+              titulo="Sin registros"
+              descripcion={`No hay cierres registrados en el período ${mes}.`}
+            />
+          }
+        >
+          {cierres.map((turno) => {
                   const expandido = filaExpandida === turno.id;
                   const dif = turno.diferencia || 0;
                   const esExacto = dif === 0;
@@ -177,11 +180,8 @@ function AuditoriaCierres() {
                       )}
                     </Fragment>
                   );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
+                })}
+          </Tabla>
       </div>
     </div>
   );

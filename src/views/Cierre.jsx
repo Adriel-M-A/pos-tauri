@@ -13,6 +13,7 @@ import ConfirmModal from "../components/ui/ConfirmModal";
 import CharacterCount from "../components/ui/CharacterCount";
 import EstadoVacio from "../components/ui/EstadoVacio";
 import Boton from "../components/ui/Boton";
+import Tabla from "../components/ui/Tabla";
 
 function Cierre() {
   // Estado global de la vista: 'cargando' | 'apertura' | 'operacion' | 'cerrando' | 'resumen'
@@ -244,9 +245,12 @@ function Cierre() {
   // ==================== FASE 2: OPERACIÓN ====================
   if (fase === "operacion") {
     return (
-      <div className="flex flex-col h-full bg-bg-main p-4 gap-4 overflow-auto relative">
+      <div className="flex flex-col h-full bg-bg-main overflow-hidden relative">
         {/* Indicador de carga */}
         <LoadingBar isVisible={isLoading} />
+
+        {/* CONTROLES ESTATICOS */}
+        <div className="p-4 flex flex-col gap-4 shrink-0">
 
         {/* Encabezado del turno */}
         <div className="bg-white border border-border shadow-sm p-4 flex items-center justify-between">
@@ -350,58 +354,50 @@ function Cierre() {
             </div>
           </div>
         )}
+        </div>
 
         {/* Tabla de movimientos registrados */}
-        <div className="flex-1 bg-white border border-border shadow-sm flex flex-col">
-          <h3 className="text-xs font-bold text-text-secondary uppercase p-4 border-b border-border">
+        <div className="flex-1 flex flex-col min-h-0 px-4 pb-4">
+          <h3 className="text-xs font-bold text-text-secondary uppercase p-4 border-b border-border bg-white">
             Movimientos del Turno ({movimientos.length})
           </h3>
-          <div className="flex-1 overflow-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="bg-bg-panel border-b border-border">
-                  <th className="text-left text-xs font-semibold text-text-secondary px-4 py-3 uppercase">Hora</th>
-                  <th className="text-left text-xs font-semibold text-text-secondary px-4 py-3 uppercase">Tipo</th>
-                  <th className="text-left text-xs font-semibold text-text-secondary px-4 py-3 uppercase">Motivo</th>
-                  <th className="text-right text-xs font-semibold text-text-secondary px-4 py-3 uppercase">Monto</th>
-                </tr>
-              </thead>
-              <tbody>
-                {movimientos.length === 0 ? (
-                  <tr>
-                    <td colSpan="4" className="py-12">
-                      <EstadoVacio
-                        icono={ArrowLeftRight}
-                        titulo="Sin movimientos"
-                        descripcion="No hay movimientos manuales registrados en este turno."
-                      />
-                    </td>
-                  </tr>
-                ) : (
-                  movimientos.map((mov) => (
-                    <tr key={mov.id} className="border-b border-border-light hover:bg-accent-light/30">
-                      <td className="px-4 py-3 text-sm font-bold text-text-primary capitalize">
-                        {formatearFecha(mov.fecha, "d 'de' MMMM, HH:mm 'hs'")}
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        <span className={`px-2 py-1 text-xs font-black uppercase ${mov.tipo === "ingreso"
-                          ? "bg-success/10 text-success"
-                          : "bg-danger/10 text-danger"
-                          }`}>
-                          {mov.tipo}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-text-secondary">{mov.motivo || "-"}</td>
-                      <td className={`px-4 py-3 text-sm text-right font-black ${mov.tipo === "ingreso" ? "text-success" : "text-danger"
-                        }`}>
-                        {mov.tipo === "ingreso" ? "+" : "-"}${formatearMoneda(mov.monto)}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+          <Tabla
+            columnas={[
+              { titulo: "Hora", alinear: "left" },
+              { titulo: "Tipo", alinear: "left" },
+              { titulo: "Motivo", alinear: "left" },
+              { titulo: "Monto", alinear: "right" }
+            ]}
+            mostrarVacio={movimientos.length === 0}
+            estadoVacio={
+              <EstadoVacio
+                icono={ArrowLeftRight}
+                titulo="Sin movimientos"
+                descripcion="No hay movimientos manuales registrados en este turno."
+              />
+            }
+          >
+            {movimientos.map((mov) => (
+              <tr key={mov.id} className="border-b border-border-light hover:bg-accent-light/30">
+                <td className="px-4 py-3 text-sm font-bold text-text-primary capitalize">
+                  {formatearFecha(mov.fecha, "d 'de' MMMM, HH:mm 'hs'")}
+                </td>
+                <td className="px-4 py-3 text-sm">
+                  <span className={`px-2 py-1 text-xs font-black uppercase ${mov.tipo === "ingreso"
+                    ? "bg-success/10 text-success"
+                    : "bg-danger/10 text-danger"
+                    }`}>
+                    {mov.tipo}
+                  </span>
+                </td>
+                <td className="px-4 py-3 text-sm text-text-secondary">{mov.motivo || "-"}</td>
+                <td className={`px-4 py-3 text-sm text-right font-black ${mov.tipo === "ingreso" ? "text-success" : "text-danger"
+                  }`}>
+                  {mov.tipo === "ingreso" ? "+" : "-"}${formatearMoneda(mov.monto)}
+                </td>
+              </tr>
+            ))}
+          </Tabla>
         </div>
         <ConfirmModal
           isOpen={modalCierreOpen}

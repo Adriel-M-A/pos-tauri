@@ -7,6 +7,7 @@ import LoadingBar from "../components/ui/LoadingBar";
 import { formatearMoneda } from "../utils/formato";
 import ModalProducto from "../components/ModalProducto";
 import KeyBadge from "../components/ui/KeyBadge";
+import EncabezadoVista from "../components/ui/EncabezadoVista";
 
 function Inventario() {
   const [listaProductos, setListaProductos] = useState([]);
@@ -198,47 +199,49 @@ function Inventario() {
       {/* OVERLAY DE CARGA (Opcional, muy sutil) */}
       <LoadingBar isVisible={isLoading} />
 
-      {/* Panel Superior de Control */}
-      <div className="flex items-center justify-between p-4 bg-bg-panel border-b border-border">
-        {/* Buscador y Filtros */}
-        <div className="flex items-center gap-6 flex-1 max-w-2xl">
-          <div className="flex-1 flex items-center gap-2 border border-border px-3 py-2 bg-white focus-within:border-accent">
-            <Search size={18} className="text-text-secondary" />
-            <input
-              ref={busquedaRef}
-              type="text"
-              maxLength={100}
-              placeholder="Buscar productos (nombre o código)..."
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-              className="flex-1 outline-none border-none bg-transparent text-sm text-text-primary placeholder:text-text-secondary"
-            />
-            <KeyBadge tecla="F1" className="bg-border text-text-secondary border-border" />
+      {/* Encabezado */}
+      <EncabezadoVista
+        variante="panel"
+        accionDerecha={
+          <Boton
+            variante="primario"
+            icono={Plus}
+            atajo="F2"
+            onClick={nuevoProducto}
+            disabled={isLoading}
+            className="px-6 shadow-sm"
+          >
+            Nuevo Producto
+          </Boton>
+        }
+        segundaFila={
+          <div className="flex items-center gap-6 max-w-2xl">
+            <div className="flex-1 flex items-center gap-2 border border-border px-3 py-2 bg-white focus-within:border-accent">
+              <Search size={18} className="text-text-secondary" />
+              <input
+                ref={busquedaRef}
+                type="text"
+                maxLength={100}
+                placeholder="Buscar productos (nombre o código)..."
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+                className="flex-1 outline-none border-none bg-transparent text-sm text-text-primary placeholder:text-text-secondary"
+              />
+              <KeyBadge tecla="F1" className="bg-border text-text-secondary border-border" />
+            </div>
+
+            <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-text-secondary hover:text-text-primary select-none whitespace-nowrap">
+              <input
+                type="checkbox"
+                checked={mostrarInactivos}
+                onChange={(e) => setMostrarInactivos(e.target.checked)}
+                className="accent-accent"
+              />
+              Mostrar inactivos
+            </label>
           </div>
-
-          <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-text-secondary hover:text-text-primary select-none whitespace-nowrap">
-            <input
-              type="checkbox"
-              checked={mostrarInactivos}
-              onChange={(e) => setMostrarInactivos(e.target.checked)}
-              className="accent-accent"
-            />
-            Mostrar inactivos
-          </label>
-        </div>
-
-        {/* Botón de Acción Principal */}
-        <Boton
-          variante="primario"
-          icono={Plus}
-          atajo="F2"
-          onClick={nuevoProducto}
-          disabled={isLoading}
-          className="px-6 py-2 shadow-sm"
-        >
-          Nuevo Producto
-        </Boton>
-      </div>
+        }
+      />
 
       {/* Grilla / Inventario Principal */}
       <div className="flex-1 overflow-auto p-4">

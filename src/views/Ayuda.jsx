@@ -1,6 +1,6 @@
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
-import TituloVista from "../components/ui/TituloVista";
+import EncabezadoVista from "../components/ui/EncabezadoVista";
 
 // Importar manuales como raw strings usando Vite
 import manualIntroduccion from "../manuals/introduccion.md?raw";
@@ -28,26 +28,27 @@ function Ayuda() {
   return (
     <div className="flex flex-col h-full bg-bg-main">
       {/* Cabecera del Manual */}
-      <div className="p-6 pb-0">
-        <TituloVista titulo="Manual de Usuario" />
-
-        {/* Selector de Tabs (Estilo Informes) */}
-        <div className="flex gap-2">
-          {TABS.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setTabActiva(tab.id)}
-              className={`cursor-pointer px-4 py-2 font-bold text-sm transition-colors border ${
-                tabActiva === tab.id
-                  ? "bg-accent text-white border-accent"
-                  : "bg-bg-panel border-border text-text-secondary hover:bg-border/50"
-              }`}
-            >
-              {tab.nombre}
-            </button>
-          ))}
-        </div>
-      </div>
+      <EncabezadoVista
+        titulo="Manual de Usuario"
+        variante="plano"
+        segundaFila={
+          <div className="flex gap-2">
+            {TABS.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setTabActiva(tab.id)}
+                className={`cursor-pointer px-4 py-2 font-bold text-sm transition-colors border ${
+                  tabActiva === tab.id
+                    ? "bg-accent text-white border-accent"
+                    : "bg-bg-panel border-border text-text-secondary hover:bg-border/50"
+                }`}
+              >
+                {tab.nombre}
+              </button>
+            ))}
+          </div>
+        }
+      />
 
       {/* Área del Lector de Markdown */}
       <div className="flex-1 overflow-auto p-8 max-w-6xl mx-auto w-full">
